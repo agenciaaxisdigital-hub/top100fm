@@ -26,14 +26,18 @@ export function PromotionsManager() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoadErr(null);
+    setLoading(true);
     try {
       const data = await getPromotions();
       setPromos(Array.isArray(data) ? (data as Promotion[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar promoções");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -106,15 +110,17 @@ export function PromotionsManager() {
         <h1>
           <GiftIcon /> <span>Promoções</span>
         </h1>
-        <button
-          className="admin-btn-primary"
-          onClick={() => {
-            reset();
-            setShowForm(true);
-          }}
-        >
-          <PlusIcon /> Nova promoção
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="admin-btn-secondary" onClick={load} disabled={loading} title="Atualizar lista">
+            {loading ? "⟳" : "↻"} Atualizar
+          </button>
+          <button
+            className="admin-btn-primary"
+            onClick={() => { reset(); setShowForm(true); }}
+          >
+            <PlusIcon /> Nova promoção
+          </button>
+        </div>
       </header>
 
       {showForm && (

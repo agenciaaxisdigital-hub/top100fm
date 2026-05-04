@@ -26,14 +26,18 @@ export function ProgramacaoManager() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoadErr(null);
+    setLoading(true);
     try {
       const data = await getProgramacaoAdmin();
       setItems(Array.isArray(data) ? (data as ProgItem[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar programação");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -104,15 +108,14 @@ export function ProgramacaoManager() {
         <h1>
           <CalendarIcon /> <span>Programação</span>
         </h1>
-        <button
-          className="admin-btn-primary"
-          onClick={() => {
-            reset();
-            setShowForm(true);
-          }}
-        >
-          <PlusIcon /> Novo programa
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="admin-btn-secondary" onClick={load} disabled={loading} title="Atualizar lista">
+            {loading ? "⟳" : "↻"} Atualizar
+          </button>
+          <button className="admin-btn-primary" onClick={() => { reset(); setShowForm(true); }}>
+            <PlusIcon /> Novo programa
+          </button>
+        </div>
       </header>
 
       {showForm && (

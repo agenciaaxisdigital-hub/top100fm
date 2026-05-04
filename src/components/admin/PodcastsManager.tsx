@@ -38,14 +38,18 @@ export function PodcastsManager() {
   const [live, setLive] = useState({ active: false, url: "", title: "" });
   const [liveSaving, setLiveSaving] = useState(false);
   const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoadErr(null);
+    setLoading(true);
     try {
       const data = await getPodcastsAdmin();
       setItems(Array.isArray(data) ? (data as PodcastItemAdmin[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar podcasts");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -130,15 +134,14 @@ export function PodcastsManager() {
         <h1>
           <MicIcon /> <span>Podcasts</span>
         </h1>
-        <button
-          className="admin-btn-primary"
-          onClick={() => {
-            reset();
-            setShowForm(true);
-          }}
-        >
-          <PlusIcon /> Novo podcast
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="admin-btn-secondary" onClick={load} disabled={loading} title="Atualizar lista">
+            {loading ? "⟳" : "↻"} Atualizar
+          </button>
+          <button className="admin-btn-primary" onClick={() => { reset(); setShowForm(true); }}>
+            <PlusIcon /> Novo podcast
+          </button>
+        </div>
       </header>
 
       <div className="admin-form-card">

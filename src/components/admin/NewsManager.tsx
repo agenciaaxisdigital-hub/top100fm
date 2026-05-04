@@ -34,15 +34,19 @@ export function NewsManager() {
   const [forceMsg, setForceMsg] = useState<string | null>(null);
 
   const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoadErr(null);
+    setLoading(true);
     try {
       const [data, settings] = await Promise.all([getNews(), getSiteSettings()]);
       setNews(Array.isArray(data) ? (data as NewsItem[]) : []);
       setAutoEnabled(settings?.auto_news_enabled === true || settings?.auto_news_enabled === "true");
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar notícias");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -157,15 +161,14 @@ export function NewsManager() {
         <h1>
           <NewsIcon /> <span>Notícias</span>
         </h1>
-        <button
-          className="admin-btn-primary"
-          onClick={() => {
-            reset();
-            setShowForm(true);
-          }}
-        >
-          <PlusIcon /> Nova notícia
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="admin-btn-secondary" onClick={load} disabled={loading} title="Atualizar lista">
+            {loading ? "⟳" : "↻"} Atualizar
+          </button>
+          <button className="admin-btn-primary" onClick={() => { reset(); setShowForm(true); }}>
+            <PlusIcon /> Nova notícia
+          </button>
+        </div>
       </header>
 
       <div className="admin-form-card" style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
