@@ -73,12 +73,13 @@ export const deletePromotion = createAdminServerFn("POST")
 
 export const getNews = createAdminServerFn("GET").handler(async () => {
   const supabase = await getAdminSupabase();
-  const { data } = await (supabase as any)
+  const { data, error } = await (supabase as any)
     .from("news")
     .select("*")
     .order("is_pinned", { ascending: false })
     .order("pinned_at", { ascending: false, nullsFirst: false })
     .order("updated_at", { ascending: false });
+  if (error) throw new Error(error.message);
   return data || [];
 });
 

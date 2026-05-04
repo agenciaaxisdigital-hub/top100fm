@@ -4,7 +4,7 @@ import {
   createPromotion,
   updatePromotion,
   deletePromotion,
-} from "@/lib/admin-api.functions";
+} from "@/lib/admin-api";
 import { ImageUploader } from "./ImageUploader";
 import { GiftIcon, PencilIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import type { Promotion } from "./types";

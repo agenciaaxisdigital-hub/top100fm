@@ -8,6 +8,7 @@ import {
   LogoutIcon,
   MicIcon,
   NewsIcon,
+  SettingsIcon,
   ShieldIcon,
   UsersIcon,
 } from "./icons";
@@ -29,7 +30,8 @@ const NAV: { key: AdminTab; label: string; icon: ComponentType }[] = [
   { key: "programacao", label: "Programação", icon: CalendarIcon },
   { key: "podcasts", label: "Podcasts", icon: MicIcon },
   { key: "sponsors", label: "Patrocinadores", icon: GiftIcon },
-  { key: "users", label: "Administradores", icon: ShieldIcon }
+  { key: "settings", label: "Configurações do site", icon: SettingsIcon },
+  { key: "users", label: "Administradores", icon: ShieldIcon },
 ];
 
 export function AdminSidebar({

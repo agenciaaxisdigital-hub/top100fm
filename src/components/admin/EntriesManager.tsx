@@ -3,7 +3,7 @@ import {
   getPromotionEntries,
   deletePromotionEntry,
   getPromotions,
-} from "@/lib/admin-api.functions";
+} from "@/lib/admin-api";
 import { DownloadIcon, TrashIcon, UsersIcon } from "./icons";
 import type { EntryRow } from "./types";
 

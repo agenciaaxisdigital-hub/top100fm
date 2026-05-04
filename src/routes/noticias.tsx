@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribePublicTables } from "@/lib/supabase-public-refresh";
 import { safeImageUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/noticias")({
@@ -48,19 +49,53 @@ function NoticiasPage() {
     };
   }, [open]);
 
-  useEffect(() => {
-    (supabase as any)
-      .from("news")
-      .select("*")
-      .eq("is_published", true)
-      .order("is_pinned", { ascending: false })
-      .order("pinned_at", { ascending: false, nullsFirst: false })
-      .order("updated_at", { ascending: false })
-      .then(({ data }: any) => {
-        setNews((data as unknown as NewsItem[]) || []);
-        setLoading(false);
-      });
+  const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadNews = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent === true;
+    if (!silent) setLoading(true);
+    try {
+      const { data } = await (supabase as any)
+        .from("news")
+        .select("*")
+        .eq("is_published", true)
+        .order("is_pinned", { ascending: false })
+        .order("pinned_at", { ascending: false, nullsFirst: false })
+        .order("updated_at", { ascending: false });
+      setNews((data as unknown as NewsItem[]) || []);
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  const scheduleReload = useCallback(() => {
+    if (reloadTimer.current) clearTimeout(reloadTimer.current);
+    reloadTimer.current = setTimeout(() => {
+      reloadTimer.current = null;
+      void loadNews({ silent: true });
+    }, 450);
+  }, [loadNews]);
+
+  useEffect(() => {
+    void loadNews({ silent: false });
+  }, [loadNews]);
+
+  useEffect(() => {
+    return subscribePublicTables(supabase, ["news"], scheduleReload);
+  }, [scheduleReload]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") scheduleReload();
+    };
+    const onFocus = () => scheduleReload();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [scheduleReload]);
 
   const fmtDate = (d: string | null) =>
     new Date(d || Date.now()).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });

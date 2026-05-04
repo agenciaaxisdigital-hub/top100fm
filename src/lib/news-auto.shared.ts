@@ -7,7 +7,8 @@ const FEEDS = [
   { name: "Agência Brasil", url: "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml" },
 ];
 
-const MAX_PER_FEED = 6;
+const MAX_PER_FEED = 3;
+const MAX_DAILY = 5;
 
 function decodeEntities(s: string): string {
   return s
@@ -107,12 +108,29 @@ export async function isAutoNewsEnabled(adminClient: any): Promise<boolean> {
   return raw === true || raw === "true" || raw === '"true"';
 }
 
+async function countTodayAutoNews(adminClient: any): Promise<number> {
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+  const { count } = await adminClient
+    .from("news")
+    .select("*", { count: "exact", head: true })
+    .eq("auto_generated", true)
+    .gte("created_at", todayStart.toISOString());
+  return count ?? 0;
+}
+
 export async function runNewsIngestWithClient(adminClient: any): Promise<NewsIngestResult> {
+  const todayCount = await countTodayAutoNews(adminClient);
+  const budget = MAX_DAILY - todayCount;
+  if (budget <= 0) return { inserted: 0, skipped: 0, total: 0 };
+
   const items = await fetchAndParse();
   let inserted = 0;
   let skipped = 0;
 
   for (const it of items) {
+    if (inserted >= budget) break;
+
     const { data: existing } = await adminClient
       .from("news")
       .select("id")

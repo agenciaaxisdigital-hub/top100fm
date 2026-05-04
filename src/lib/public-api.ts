@@ -20,6 +20,7 @@ export const getPublishedNews = createServerFn({ method: "GET" }).handler(async 
   const { data } = await (supabase as any)
     .from("news")
     .select("*")
+    .eq("is_published", true)
     .order("is_pinned", { ascending: false })
     .order("pinned_at", { ascending: false, nullsFirst: false })
     .order("display_order", { ascending: true })

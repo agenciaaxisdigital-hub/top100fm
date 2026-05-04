@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { subscribePublicTables } from "@/lib/supabase-public-refresh";
 import { getActivePromotions } from "@/lib/public-api";
 import { PromotionEntryForm } from "@/components/PromotionEntryForm";
 
@@ -23,6 +25,16 @@ export function PromotionPopup() {
         setPromo(popups[0]);
         setTimeout(() => setVisible(true), 2000);
       }
+    });
+  }, []);
+
+  useEffect(() => {
+    return subscribePublicTables(supabase, ["promotions"], () => {
+      if (sessionStorage.getItem("promo_dismissed")) return;
+      void getActivePromotions().then((data) => {
+        const popups = (data as Promotion[]).filter((p) => p.show_as_popup);
+        setPromo(popups.length > 0 ? popups[0] : null);
+      });
     });
   }, []);
 

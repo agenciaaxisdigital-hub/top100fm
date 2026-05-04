@@ -201,6 +201,24 @@ export function SiteSettingsPage() {
         </label>
       </div>
 
+      {/* Notícias Automáticas */}
+      <h3>Notícias Automáticas</h3>
+      <div className="admin-grid">
+        <label>
+          Habilitar alimentação automática (5 notícias/dia via RSS)
+          <input
+            type="checkbox"
+            checked={!!form.auto_news_enabled}
+            onChange={(e) => handleChange("auto_news_enabled", e.target.checked)}
+          />
+        </label>
+      </div>
+      <p className="admin-hint" style={{ marginBottom: 16 }}>
+        Quando ativado, o sistema insere até <b>5 notícias por dia</b> automaticamente
+        a partir de fontes como Agência Brasil, Gov.br e Senado Federal.
+        As notícias aparecem publicadas imediatamente no site.
+      </p>
+
       {/* Popup de promoção */}
       <h3>Popup de Promoção</h3>
       <div className="admin-grid">

@@ -25,10 +25,11 @@ function AdminLoginPage() {
     try {
       const saved = localStorage.getItem(REMEMBER_KEY);
       if (saved) {
-        const { username: u, password: p } = JSON.parse(saved);
-        if (u) setUsername(u);
-        if (p) setPassword(p);
-        setRemember(true);
+        const parsed = JSON.parse(saved) as { username?: string };
+        if (parsed.username) {
+          setUsername(parsed.username);
+          setRemember(true);
+        }
       }
     } catch {}
   }, []);
@@ -55,7 +56,7 @@ function AdminLoginPage() {
             localStorage.setItem(ADMIN_SESSION_KEY, result.token);
           }
           if (remember) {
-            localStorage.setItem(REMEMBER_KEY, JSON.stringify({ username: u, password: p }));
+            localStorage.setItem(REMEMBER_KEY, JSON.stringify({ username: u }));
           } else {
             localStorage.removeItem(REMEMBER_KEY);
           }
@@ -157,7 +158,7 @@ function AdminLoginPage() {
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
             />
-            <span>Salvar minha senha neste dispositivo</span>
+            <span>Lembrar meu usuário neste dispositivo</span>
           </label>
           <button type="submit" className="admin-login-btn" disabled={loading}>
             {loading ? "Entrando…" : "Entrar"}

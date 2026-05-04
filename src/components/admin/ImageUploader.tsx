@@ -1,17 +1,11 @@
 import { useState } from "react";
+import { uploadImage } from "@/lib/admin-api";
 import { ImageIcon } from "./icons";
 
 const MAX_DIM = 2400;
 const TARGET_QUALITY = 0.85;
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_MY_SUPABASE_URL;
-const SUPABASE_STORAGE_KEY =
-  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
-  import.meta.env.VITE_MY_SUPABASE_SERVICE_ROLE_KEY ||
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_MY_SUPABASE_PUBLISHABLE_KEY;
 
 async function compressImage(file: File): Promise<Blob> {
-  // SVG ou GIF: não comprime (mantém como está)
   if (/svg|gif/i.test(file.type)) return file;
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const r = new FileReader();
@@ -43,31 +37,13 @@ async function compressImage(file: File): Promise<Blob> {
   return blob || file;
 }
 
-async function uploadToSupabaseStorage(file: Blob, filename: string, contentType: string) {
-  if (!SUPABASE_URL || !SUPABASE_STORAGE_KEY) {
-    throw new Error("Supabase não configurado para upload.");
-  }
-
-  const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `uploads/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/media/${encodedPath}`, {
-    method: "POST",
-    headers: {
-      apikey: SUPABASE_STORAGE_KEY,
-      authorization: `Bearer ${SUPABASE_STORAGE_KEY}`,
-      "content-type": contentType,
-      "x-upsert": "true",
-    },
-    body: file,
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(new Error("read"));
+    r.readAsDataURL(blob);
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `Falha no Supabase Storage (${response.status})`);
-  }
-
-  return `${SUPABASE_URL}/storage/v1/object/public/media/${encodedPath}`;
 }
 
 export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => void }) {
@@ -76,7 +52,6 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Limite generoso ANTES de comprimir (200 MB)
     if (file.size > 200 * 1024 * 1024) {
       alert("Imagem muito grande (máx. 200 MB)");
       return;
@@ -88,7 +63,11 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
         compressed.type === "image/jpeg" && !/\.jpe?g$/i.test(file.name)
           ? file.name.replace(/\.[^.]+$/, "") + ".jpg"
           : file.name;
-      const publicUrl = await uploadToSupabaseStorage(compressed, finalName, compressed.type || file.type);
+      const base64 = await blobToDataUrl(compressed);
+      const contentType = compressed.type || file.type || "image/jpeg";
+      const { publicUrl } = await uploadImage({
+        data: { filename: finalName, contentType, base64 },
+      });
       onUploaded(publicUrl);
     } catch (err) {
       console.error("Upload error:", err);
@@ -96,7 +75,6 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
       alert(`Erro ao enviar imagem: ${message}`);
     } finally {
       setUploading(false);
-      // permite re-selecionar a mesma imagem
       e.target.value = "";
     }
   };

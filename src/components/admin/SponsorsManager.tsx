@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSiteSettings, updateSiteSettings } from "@/lib/admin-api.functions";
+import { getSiteSettings, updateSiteSettings } from "@/lib/admin-api";
 import { ImageUploader } from "./ImageUploader";
 import { PencilIcon, PlusIcon, TrashIcon } from "./icons";
 

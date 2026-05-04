@@ -31,15 +31,17 @@ async function readRuntimeEnvValue(key: RuntimeEnvKey): Promise<string | undefin
 
   // Note: do NOT do dynamic access on import.meta.env — Vite's module runner
   // forbids it. Static accesses below are inlined at build time.
+  // Only non-sensitive vars are read from VITE_ (client-exposed) env.
+  // Service role keys and session secrets must come from process.env or globalThis.env only.
   const viteEnv: Record<string, string | undefined> = {
     SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: undefined,
     SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     MY_SUPABASE_URL: import.meta.env.VITE_MY_SUPABASE_URL,
-    MY_SUPABASE_SERVICE_ROLE_KEY: import.meta.env.VITE_MY_SUPABASE_SERVICE_ROLE_KEY,
+    MY_SUPABASE_SERVICE_ROLE_KEY: undefined,
     MY_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_MY_SUPABASE_PUBLISHABLE_KEY,
-    ADMIN_SESSION_SECRET: import.meta.env.VITE_ADMIN_SESSION_SECRET,
-    MY_ADMIN_SESSION_SECRET: import.meta.env.VITE_MY_ADMIN_SESSION_SECRET,
+    ADMIN_SESSION_SECRET: undefined,
+    MY_ADMIN_SESSION_SECRET: undefined,
   };
   const fromMeta = viteEnv[key];
   if (typeof fromMeta === "string" && fromMeta.length > 0) return fromMeta;

@@ -5,8 +5,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PromotionPopup } from "@/components/PromotionPopup";
 import { PromotionDetailsModal } from "@/components/PromotionDetailsModal";
 import { AudioActivationOverlay } from "@/components/AudioActivationOverlay";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribePublicTables } from "@/lib/supabase-public-refresh";
 import { safeImageUrl } from "@/lib/utils";
 import mascoteTop from "@/assets/mascote-top.png";
 import illustMic from "@/assets/illust-microphone.png";
@@ -319,69 +320,116 @@ function IndexPage() {
   const today = new Date().getDay();
   const nowHHMM = new Date().toTimeString().slice(0, 5);
 
-  useEffect(() => {
-    Promise.all([
-      (supabase as any)
-        .from("news")
-        .select("id,title,summary,content,image_url,updated_at,created_at,is_pinned,pinned_at")
-        .eq("is_published", true)
-        .order("is_pinned", { ascending: false })
-        .order("pinned_at", { ascending: false, nullsFirst: false })
-        .order("updated_at", { ascending: false })
-        .limit(7),
-      (supabase as any)
-        .from("programacao")
-        .select("id,day_of_week,program_name,presenter,start_time,end_time")
-        .eq("is_active", true)
-        .eq("day_of_week", today)
-        .neq("program_name", "__probe__")
-        .order("start_time", { ascending: true }),
-      supabase
-        .from("promotions")
-        .select("id,title,description,image_url,link")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true })
-        .limit(3),
-      (supabase as any)
-        .from("site_settings")
-        .select("setting_key,setting_value")
-        .in("setting_key", ["sponsors"]),
-      (supabase as any)
-        .from("podcasts")
-        .select("id,title,description,youtube_url,thumbnail_url")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(6),
-    ]).then(([n, p, pr, sp, pc]) => {
-      setNews((n.data as any) || []);
-      setProg((p.data as any) || []);
-      const promoData = ((pr.data as any) || []) as PromoItem[];
-      setPromos(promoData.length > 0 ? promoData : MOCK_PROMOS);
+  const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadHomeData = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const silent = options?.silent === true;
+      if (!silent) setLoading(true);
       try {
-        const rows = ((sp as any)?.data || []) as Array<{ setting_key: string; setting_value: any }>;
-        const map: Record<string, any> = {};
-        for (const r of rows) {
-          let v = r.setting_value;
-          if (typeof v === "string") {
-            try { v = JSON.parse(v); } catch { /* keep as string */ }
+        const [n, p, pr, sp, pc] = await Promise.all([
+          (supabase as any)
+            .from("news")
+            .select("id,title,summary,content,image_url,updated_at,created_at,is_pinned,pinned_at")
+            .eq("is_published", true)
+            .order("is_pinned", { ascending: false })
+            .order("pinned_at", { ascending: false, nullsFirst: false })
+            .order("updated_at", { ascending: false })
+            .limit(7),
+          (supabase as any)
+            .from("programacao")
+            .select("id,day_of_week,program_name,presenter,start_time,end_time")
+            .eq("is_active", true)
+            .eq("day_of_week", today)
+            .neq("program_name", "__probe__")
+            .order("start_time", { ascending: true }),
+          supabase
+            .from("promotions")
+            .select("id,title,description,image_url,link")
+            .eq("is_active", true)
+            .order("display_order", { ascending: true })
+            .limit(3),
+          (supabase as any)
+            .from("site_settings")
+            .select("setting_key,setting_value")
+            .in("setting_key", ["sponsors"]),
+          (supabase as any)
+            .from("podcasts")
+            .select("id,title,description,youtube_url,thumbnail_url")
+            .eq("is_active", true)
+            .order("display_order", { ascending: true })
+            .order("created_at", { ascending: false })
+            .limit(6),
+        ]);
+        setNews((n.data as any) || []);
+        setProg((p.data as any) || []);
+        const promoData = ((pr.data as any) || []) as PromoItem[];
+        setPromos(promoData.length > 0 ? promoData : MOCK_PROMOS);
+        try {
+          const rows = ((sp as any)?.data || []) as Array<{ setting_key: string; setting_value: any }>;
+          const map: Record<string, any> = {};
+          for (const r of rows) {
+            let v = r.setting_value;
+            if (typeof v === "string") {
+              try {
+                v = JSON.parse(v);
+              } catch {
+                /* keep */
+              }
+            }
+            map[r.setting_key] = v;
           }
-          map[r.setting_key] = v;
+          const list = (Array.isArray(map.sponsors) ? map.sponsors : []) as Sponsor[];
+          const filtered = list
+            .filter((s) => s.is_active !== false && (s.logo_url || SPONSOR_LOGO_FALLBACKS[s.id]))
+            .map(normalizeSponsorLogo)
+            .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+          setSponsors(filtered.length > 0 ? filtered : MOCK_SPONSORS);
+        } catch {
+          setSponsors(MOCK_SPONSORS);
         }
-        const list = (Array.isArray(map.sponsors) ? map.sponsors : []) as Sponsor[];
-        const filtered = list
-          .filter((s) => s.is_active !== false && (s.logo_url || SPONSOR_LOGO_FALLBACKS[s.id]))
-          .map(normalizeSponsorLogo)
-          .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-        setSponsors(filtered.length > 0 ? filtered : MOCK_SPONSORS);
-      } catch {
-        setSponsors(MOCK_SPONSORS);
+        const pcData = ((pc as any)?.data as PodcastItem[]) || [];
+        setPodcasts(pcData.length > 0 ? pcData : MOCK_PODCASTS);
+      } finally {
+        if (!silent) setLoading(false);
       }
-      const pcData = ((pc as any)?.data as PodcastItem[]) || [];
-      setPodcasts(pcData.length > 0 ? pcData : MOCK_PODCASTS);
-      setLoading(false);
-    });
-  }, [today]);
+    },
+    [today],
+  );
+
+  const scheduleSilentReload = useCallback(() => {
+    if (reloadTimer.current) clearTimeout(reloadTimer.current);
+    reloadTimer.current = setTimeout(() => {
+      reloadTimer.current = null;
+      void loadHomeData({ silent: true });
+    }, 450);
+  }, [loadHomeData]);
+
+  useEffect(() => {
+    void loadHomeData({ silent: false });
+  }, [loadHomeData]);
+
+  useEffect(() => {
+    const cancel = subscribePublicTables(
+      supabase,
+      ["news", "programacao", "promotions", "site_settings", "podcasts"],
+      scheduleSilentReload,
+    );
+    return cancel;
+  }, [scheduleSilentReload]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") scheduleSilentReload();
+    };
+    const onFocus = () => scheduleSilentReload();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [scheduleSilentReload]);
 
   // ESC fecha modal de notícia + trava scroll
   useEffect(() => {

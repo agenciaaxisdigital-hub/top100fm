@@ -1,0 +1,19 @@
+{
+  "outputDirectory": "dist/client",
+  "functions": {
+    "api/handler.js": {
+      "runtime": "nodejs20.x",
+      "memory": 512,
+      "includeFiles": "dist/server/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/handler" }
+  ],
+  "crons": [
+    {
+      "path": "/api/public/cron/news",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

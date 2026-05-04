@@ -8,14 +8,13 @@ let adminClient: SupabaseClient<Database> | null = null;
 export async function getAdminSupabase() {
   if (adminClient) return adminClient;
 
+  // URL is non-sensitive — VITE_ fallback is fine.
+  // Service role key is server-only — must NOT use VITE_ prefix fallback.
   const url =
     import.meta.env.VITE_MY_SUPABASE_URL ||
     import.meta.env.VITE_SUPABASE_URL ||
     (await resolveRuntimeEnv("MY_SUPABASE_URL", "SUPABASE_URL"));
-  const key =
-    import.meta.env.VITE_MY_SUPABASE_SERVICE_ROLE_KEY ||
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
-    (await resolveRuntimeEnv("MY_SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"));
+  const key = await resolveRuntimeEnv("MY_SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY");
 
   if (!url || !key) {
     throw new Error(
