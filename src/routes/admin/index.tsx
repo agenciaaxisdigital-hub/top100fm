@@ -9,8 +9,6 @@ import { ProgramacaoManager } from "@/components/admin/ProgramacaoManager";
 import { PodcastsManager } from "@/components/admin/PodcastsManager";
 import { SponsorsManager } from "@/components/admin/SponsorsManager";
 import { UsersManager } from "@/components/admin/UsersManager";
-import { SiteSettingsProvider } from "@/lib/site-settings-context";
-import { SiteSettingsPage } from "./-site-settings";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -87,7 +85,6 @@ function AdminDashboard() {
     <div className="admin-layout">
       <AdminSidebar tab={tab} onChange={setTab} onLogout={handleLogout} />
       <main className="admin-main">
-        {tab === "settings" && <SiteSettingsPage />}
         {tab === "promos" && <PromotionsManager />}
         {tab === "entries" && <EntriesManager />}
         {tab === "news" && <NewsManager />}
@@ -103,9 +100,7 @@ function AdminDashboard() {
 function WrappedAdminDashboard() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SiteSettingsProvider>
-        <AdminDashboard />
-      </SiteSettingsProvider>
+      <AdminDashboard />
     </QueryClientProvider>
   );
 }

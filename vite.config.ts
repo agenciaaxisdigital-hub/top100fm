@@ -21,8 +21,9 @@ export default defineConfig(({ mode }) => {
   ];
   const define: Record<string, string> = {};
   for (const key of serverKeys) {
-    if (env[key] && !process.env[key]) process.env[key] = env[key];
-    if (env[key]) define[`process.env.${key}`] = JSON.stringify(env[key]);
+    // env = from .env files (local); process.env[key] = set by Vercel during build
+    const val = env[key] || process.env[key];
+    if (val) define[`process.env.${key}`] = JSON.stringify(val);
   }
 
   return {

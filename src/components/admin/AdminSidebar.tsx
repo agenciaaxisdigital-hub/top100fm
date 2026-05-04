@@ -8,7 +8,6 @@ import {
   LogoutIcon,
   MicIcon,
   NewsIcon,
-  SettingsIcon,
   ShieldIcon,
   UsersIcon,
 } from "./icons";
@@ -20,7 +19,6 @@ export type AdminTab =
   | "programacao"
   | "podcasts"
   | "sponsors"
-  | "settings"
   | "users";
 
 const NAV: { key: AdminTab; label: string; icon: ComponentType }[] = [
@@ -30,7 +28,6 @@ const NAV: { key: AdminTab; label: string; icon: ComponentType }[] = [
   { key: "programacao", label: "Programação", icon: CalendarIcon },
   { key: "podcasts", label: "Podcasts", icon: MicIcon },
   { key: "sponsors", label: "Patrocinadores", icon: GiftIcon },
-  { key: "settings", label: "Configurações do site", icon: SettingsIcon },
   { key: "users", label: "Administradores", icon: ShieldIcon },
 ];
 
