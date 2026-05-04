@@ -49,6 +49,7 @@ export type ProgramacaoItem = {
   end_time: string;
   display_order: number;
   is_active: boolean;
+  flyer_url: string | null;
 };
 
 export type PodcastItem = {
@@ -131,4 +132,27 @@ export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(a
     }
   });
   return settings;
+});
+
+export type LiveStreamStatus = {
+  active: boolean;
+  url: string | null;
+  title: string | null;
+};
+
+export const getLiveStream = createServerFn({ method: "GET" }).handler(async (): Promise<LiveStreamStatus> => {
+  const supabase = await getPublicSupabase();
+  const { data } = await (supabase as any)
+    .from("site_settings")
+    .select("setting_key, setting_value")
+    .in("setting_key", ["live_active", "live_url", "live_title"]);
+
+  const map: Record<string, string> = {};
+  (data || []).forEach((row: any) => { map[row.setting_key] = row.setting_value; });
+
+  return {
+    active: map["live_active"] === "true",
+    url: map["live_url"] || null,
+    title: map["live_title"] || null,
+  };
 });

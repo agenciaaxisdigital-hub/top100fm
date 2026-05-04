@@ -5,6 +5,7 @@ import {
   updateProgramacao,
   deleteProgramacao,
 } from "@/lib/admin-api";
+import { ImageUploader } from "./ImageUploader";
 import { CalendarIcon, PencilIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import { DAYS_LABELS, type ProgItem } from "./types";
 
@@ -15,6 +16,7 @@ const EMPTY = {
   start_time: "08:00",
   end_time: "10:00",
   display_order: 0,
+  flyer_url: "",
 };
 
 export function ProgramacaoManager() {
@@ -63,6 +65,7 @@ export function ProgramacaoManager() {
       start_time: p.start_time.slice(0, 5),
       end_time: p.end_time.slice(0, 5),
       display_order: p.display_order ?? 0,
+      flyer_url: p.flyer_url || "",
     });
     setEditing(p);
     setShowForm(true);
@@ -168,6 +171,18 @@ export function ProgramacaoManager() {
               />
             </div>
           </div>
+          <div className="admin-field">
+            <label>Flyer / arte do programa (opcional)</label>
+            {form.flyer_url && (
+              <img src={form.flyer_url} alt="Flyer" className="admin-preview-img" />
+            )}
+            <ImageUploader onUploaded={(url) => setForm({ ...form, flyer_url: url })} />
+            <input
+              value={form.flyer_url}
+              onChange={(e) => setForm({ ...form, flyer_url: e.target.value })}
+              placeholder="ou cole uma URL de imagem"
+            />
+          </div>
           <div className="admin-form-actions">
             <button className="admin-btn-primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : editing ? "Salvar alterações" : "Criar programa"}
@@ -193,6 +208,9 @@ export function ProgramacaoManager() {
                     key={p.id}
                     className={`admin-list-item ${!p.is_active ? "inactive" : ""}`}
                   >
+                    {p.flyer_url && (
+                      <img src={p.flyer_url} alt="Flyer" className="admin-list-thumb" />
+                    )}
                     <div className="admin-list-info">
                       <h4>
                         {p.presenter ? `${p.presenter} · ${p.program_name}` : p.program_name}

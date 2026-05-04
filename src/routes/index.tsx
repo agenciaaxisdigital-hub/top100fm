@@ -314,6 +314,7 @@ function IndexPage() {
   const [playingPodcast, setPlayingPodcast] = useState<string | null>(null);
   const [podcastModalOpen, setPodcastModalOpen] = useState(false);
   const [modalPlayingPodcast, setModalPlayingPodcast] = useState<string | null>(null);
+  const [liveStream, setLiveStream] = useState<{ active: boolean; url: string | null; title: string | null }>({ active: false, url: null, title: null });
   const [selectedPromo, setSelectedPromo] = useState<PromoItem | null>(null);
   const [openNews, setOpenNews] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -352,7 +353,7 @@ function IndexPage() {
           (supabase as any)
             .from("site_settings")
             .select("setting_key,setting_value")
-            .in("setting_key", ["sponsors"]),
+            .in("setting_key", ["sponsors", "live_active", "live_url", "live_title"]),
           (supabase as any)
             .from("podcasts")
             .select("id,title,description,youtube_url,thumbnail_url")
@@ -385,6 +386,11 @@ function IndexPage() {
             .map(normalizeSponsorLogo)
             .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
           setSponsors(filtered.length > 0 ? filtered : MOCK_SPONSORS);
+          setLiveStream({
+            active: map["live_active"] === "true" || map["live_active"] === true,
+            url: map["live_url"] || null,
+            title: map["live_title"] || null,
+          });
         } catch {
           setSponsors(MOCK_SPONSORS);
         }
@@ -846,6 +852,51 @@ function IndexPage() {
             )}
           </div>
         </section>
+
+        {/* AO VIVO — banner de transmissão */}
+        {liveStream.active && liveStream.url && (
+          <section className="relative overflow-hidden bg-[#0a0a0a] text-white py-10">
+            <div className="relative mx-auto max-w-5xl px-4">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c8102e] opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-[#c8102e]" />
+                </span>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-[#c8102e]">Ao Vivo</span>
+              </div>
+              {liveStream.title && (
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-4">{liveStream.title}</h2>
+              )}
+              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
+                {(() => {
+                  const ytId = getYoutubeId(liveStream.url);
+                  if (ytId) {
+                    return (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}?autoplay=0&rel=0&modestbranding=1`}
+                        title={liveStream.title || "Transmissão ao vivo TOP100 FM"}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    );
+                  }
+                  return (
+                    <a
+                      href={liveStream.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-full w-full items-center justify-center gap-3 bg-[#111] hover:bg-[#1a1a1a] transition text-white font-bold text-lg"
+                    >
+                      <span className="h-3 w-3 rounded-full bg-[#c8102e] animate-pulse" />
+                      Assistir transmissão ao vivo →
+                    </a>
+                  );
+                })()}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* PODCASTS — mesma estética da Programação */}
         {podcasts.length > 0 && (

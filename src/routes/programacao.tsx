@@ -249,6 +249,17 @@ function ProgramacaoPage() {
                             </p>
                           )}
                         </div>
+
+                        {/* Flyer thumbnail */}
+                        {p.flyer_url && (
+                          <div className="flex-shrink-0 pr-4 py-4 flex items-center">
+                            <img
+                              src={p.flyer_url}
+                              alt={`Flyer ${p.program_name}`}
+                              className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-xl border border-gray-100 shadow-sm"
+                            />
+                          </div>
+                        )}
                       </div>
                     </article>
                   </li>

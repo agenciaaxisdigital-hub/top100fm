@@ -1,3 +1,5 @@
+
+
 // Re-exporta todas as funções admin do arquivo functions (que usa o guard de token correto)
 export {
   getPromotions,
@@ -20,9 +22,10 @@ export {
   getPromotionEntries,
   deletePromotionEntry,
   getUploadUrl,
-  uploadImage,
   triggerAutoNewsManual,
   triggerAutoNewsForce,
   getSiteSettings,
   updateSiteSettings,
+  getLiveStreamAdmin,
+  setLiveStream,
 } from "./admin-api.functions";

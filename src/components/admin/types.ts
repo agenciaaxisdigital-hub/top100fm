@@ -39,6 +39,7 @@ export type ProgItem = {
   end_time: string;
   display_order: number;
   is_active: boolean;
+  flyer_url: string | null;
 };
 
 export type PodcastItemAdmin = {

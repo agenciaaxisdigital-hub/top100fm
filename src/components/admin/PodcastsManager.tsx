@@ -4,6 +4,8 @@ import {
   createPodcast,
   updatePodcast,
   deletePodcast,
+  getLiveStreamAdmin,
+  setLiveStream,
 } from "@/lib/admin-api";
 import { ImageUploader } from "./ImageUploader";
 import { MicIcon, PencilIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
@@ -33,14 +35,37 @@ export function PodcastsManager() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
+  const [live, setLive] = useState({ active: false, url: "", title: "" });
+  const [liveSaving, setLiveSaving] = useState(false);
+
   const load = useCallback(async () => {
     const data = await getPodcastsAdmin();
     setItems(Array.isArray(data) ? (data as PodcastItemAdmin[]) : []);
   }, []);
 
+  const loadLive = useCallback(async () => {
+    const data = await getLiveStreamAdmin();
+    if (data) setLive({ active: data.active, url: data.url || "", title: data.title || "" });
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadLive();
+  }, [load, loadLive]);
+
+  const saveLive = async () => {
+    if (live.active && !live.url.trim()) {
+      alert("Informe a URL da transmissão ao vivo");
+      return;
+    }
+    setLiveSaving(true);
+    try {
+      await setLiveStream({ data: { active: live.active, url: live.url, title: live.title } });
+      alert(live.active ? "Transmissão ao vivo ativada!" : "Transmissão ao vivo desativada.");
+    } finally {
+      setLiveSaving(false);
+    }
+  };
 
   const reset = () => {
     setForm(EMPTY);
@@ -109,6 +134,46 @@ export function PodcastsManager() {
           <PlusIcon /> Novo podcast
         </button>
       </header>
+
+      <div className="admin-form-card">
+        <h3>🔴 Transmissão ao vivo</h3>
+        <div className="admin-field">
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={live.active}
+              onChange={(e) => setLive({ ...live, active: e.target.checked })}
+              style={{ width: "1.1rem", height: "1.1rem" }}
+            />
+            <span>{live.active ? "AO VIVO ativado" : "AO VIVO desativado"}</span>
+          </label>
+        </div>
+        <div className="admin-field">
+          <label>URL da transmissão (YouTube Live, etc.)</label>
+          <input
+            value={live.url}
+            onChange={(e) => setLive({ ...live, url: e.target.value })}
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+          <small className="admin-hint">
+            Cole o link do YouTube Live ou qualquer URL de stream.
+          </small>
+        </div>
+        <div className="admin-field">
+          <label>Título da transmissão (opcional)</label>
+          <input
+            value={live.title}
+            onChange={(e) => setLive({ ...live, title: e.target.value })}
+            placeholder="Ex: Top 100 FM ao vivo agora!"
+            maxLength={120}
+          />
+        </div>
+        <div className="admin-form-actions">
+          <button className="admin-btn-primary" onClick={saveLive} disabled={liveSaving}>
+            {liveSaving ? "Salvando..." : "Salvar transmissão"}
+          </button>
+        </div>
+      </div>
 
       {showForm && (
         <div className="admin-form-card">

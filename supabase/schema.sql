@@ -54,6 +54,7 @@ create table if not exists programacao (
   end_time      text not null,  -- formato HH:MM
   is_active     boolean default true,
   display_order integer,
+  flyer_url     text,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );

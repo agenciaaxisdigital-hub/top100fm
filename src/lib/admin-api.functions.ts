@@ -160,6 +160,7 @@ export const createProgramacao = createAdminServerFn("POST")
       start_time: string;
       end_time: string;
       display_order?: number;
+      flyer_url?: string;
     }) => input,
   )
   .handler(async ({ data }) => {
@@ -184,6 +185,7 @@ export const updateProgramacao = createAdminServerFn("POST")
       end_time?: string;
       display_order?: number;
       is_active?: boolean;
+      flyer_url?: string;
     }) => input,
   )
   .handler(async ({ data }) => {
@@ -346,6 +348,38 @@ export const getUploadUrl = createServerFn({ method: "POST" })
     } catch (e) {
       return { signedUrl: null, publicUrl: null, error: e instanceof Error ? e.message : "Erro interno" };
     }
+  });
+
+export const getLiveStreamAdmin = createAdminServerFn("GET").handler(async () => {
+  const supabase = await getAdminSupabase();
+  const { data } = await (supabase as any)
+    .from("site_settings")
+    .select("setting_key, setting_value")
+    .in("setting_key", ["live_active", "live_url", "live_title"]);
+
+  const map: Record<string, string> = {};
+  (data || []).forEach((row: any) => { map[row.setting_key] = row.setting_value; });
+
+  return {
+    active: map["live_active"] === "true",
+    url: map["live_url"] || "",
+    title: map["live_title"] || "",
+  };
+});
+
+export const setLiveStream = createAdminServerFn("POST")
+  .inputValidator((input: { active: boolean; url?: string; title?: string }) => input)
+  .handler(async ({ data }) => {
+    const supabase = await getAdminSupabase();
+    const upsert = async (key: string, value: string) =>
+      (supabase as any).from("site_settings").upsert(
+        { setting_key: key, setting_value: value, updated_at: new Date().toISOString() },
+        { onConflict: "setting_key" },
+      );
+    await upsert("live_active", String(data.active));
+    if (data.url !== undefined) await upsert("live_url", data.url);
+    if (data.title !== undefined) await upsert("live_title", data.title);
+    return { success: true };
   });
 
 export const triggerAutoNewsManual = createAdminServerFn("POST").handler(async () => {
