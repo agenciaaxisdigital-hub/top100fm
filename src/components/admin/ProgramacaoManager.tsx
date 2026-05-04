@@ -25,10 +25,16 @@ export function ProgramacaoManager() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const data = await getProgramacaoAdmin();
-    setItems(Array.isArray(data) ? (data as ProgItem[]) : []);
+    setLoadErr(null);
+    try {
+      const data = await getProgramacaoAdmin();
+      setItems(Array.isArray(data) ? (data as ProgItem[]) : []);
+    } catch (e: any) {
+      setLoadErr(e?.message || "Erro ao carregar programação");
+    }
   }, []);
 
   useEffect(() => {
@@ -195,7 +201,13 @@ export function ProgramacaoManager() {
       )}
 
       <div className="admin-list">
-        {safeItems.length === 0 && (
+        {loadErr && (
+          <div className="admin-error">
+            <span>⚠ {loadErr}</span>
+            <button className="admin-btn-secondary" onClick={load}>Tentar novamente</button>
+          </div>
+        )}
+        {!loadErr && safeItems.length === 0 && (
           <p className="admin-empty">Nenhum programa cadastrado.</p>
         )}
         {grouped.map(

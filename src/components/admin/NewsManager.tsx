@@ -33,10 +33,17 @@ export function NewsManager() {
   const [forceBusy, setForceBusy] = useState(false);
   const [forceMsg, setForceMsg] = useState<string | null>(null);
 
+  const [loadErr, setLoadErr] = useState<string | null>(null);
+
   const load = useCallback(async () => {
-    const [data, settings] = await Promise.all([getNews(), getSiteSettings()]);
-    setNews(Array.isArray(data) ? (data as NewsItem[]) : []);
-    setAutoEnabled(settings?.auto_news_enabled === true || settings?.auto_news_enabled === "true");
+    setLoadErr(null);
+    try {
+      const [data, settings] = await Promise.all([getNews(), getSiteSettings()]);
+      setNews(Array.isArray(data) ? (data as NewsItem[]) : []);
+      setAutoEnabled(settings?.auto_news_enabled === true || settings?.auto_news_enabled === "true");
+    } catch (e: any) {
+      setLoadErr(e?.message || "Erro ao carregar notícias");
+    }
   }, []);
 
   useEffect(() => {
@@ -245,7 +252,13 @@ export function NewsManager() {
       )}
 
       <div className="admin-list">
-        {safeNews.length === 0 && <p className="admin-empty">Nenhuma notícia cadastrada.</p>}
+        {loadErr && (
+          <div className="admin-error">
+            <span>⚠ {loadErr}</span>
+            <button className="admin-btn-secondary" onClick={load}>Tentar novamente</button>
+          </div>
+        )}
+        {!loadErr && safeNews.length === 0 && <p className="admin-empty">Nenhuma notícia cadastrada.</p>}
         {safeNews.map((n) => (
           <article key={n.id} className={`admin-list-item ${!n.is_published ? "inactive" : ""}`}>
             {n.image_url && <img src={n.image_url} alt="" className="admin-list-thumb" />}

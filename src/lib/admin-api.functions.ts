@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { verifyAdminToken } from "@/lib/admin-token";
 
-export const getPromotions = createAdminServerFn("GET").handler(async () => {
+export const getPromotions = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data, error } = await supabase
     .from("promotions")
@@ -74,7 +74,7 @@ export const deletePromotion = createAdminServerFn("POST")
     return { success: true };
   });
 
-export const getNews = createAdminServerFn("GET").handler(async () => {
+export const getNews = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data, error } = await (supabase as any)
     .from("news")
@@ -141,7 +141,7 @@ export const deleteNews = createAdminServerFn("POST")
     return { success: true };
   });
 
-export const getProgramacaoAdmin = createAdminServerFn("GET").handler(async () => {
+export const getProgramacaoAdmin = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data } = await (supabase as any)
     .from("programacao")
@@ -210,7 +210,7 @@ export const deleteProgramacao = createAdminServerFn("POST")
     return { success: true };
   });
 
-export const getPodcastsAdmin = createAdminServerFn("GET").handler(async () => {
+export const getPodcastsAdmin = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data } = await (supabase as any)
     .from("podcasts")
@@ -350,7 +350,7 @@ export const getUploadUrl = createServerFn({ method: "POST" })
     }
   });
 
-export const getLiveStreamAdmin = createAdminServerFn("GET").handler(async () => {
+export const getLiveStreamAdmin = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data } = await (supabase as any)
     .from("site_settings")
@@ -408,7 +408,7 @@ export const triggerAutoNewsForce = createAdminServerFn("POST").handler(async ()
   }
 });
 
-export const getSiteSettings = createAdminServerFn("GET").handler(async () => {
+export const getSiteSettings = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data, error } = await (supabase as any).from("site_settings").select("*");
   if (error) throw new Error(error.message);

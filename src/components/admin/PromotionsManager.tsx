@@ -25,10 +25,16 @@ export function PromotionsManager() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const data = await getPromotions();
-    setPromos(Array.isArray(data) ? (data as Promotion[]) : []);
+    setLoadErr(null);
+    try {
+      const data = await getPromotions();
+      setPromos(Array.isArray(data) ? (data as Promotion[]) : []);
+    } catch (e: any) {
+      setLoadErr(e?.message || "Erro ao carregar promoções");
+    }
   }, []);
 
   useEffect(() => {
@@ -185,7 +191,13 @@ export function PromotionsManager() {
       )}
 
       <div className="admin-list">
-        {safePromos.length === 0 && (
+        {loadErr && (
+          <div className="admin-error">
+            <span>⚠ {loadErr}</span>
+            <button className="admin-btn-secondary" onClick={load}>Tentar novamente</button>
+          </div>
+        )}
+        {!loadErr && safePromos.length === 0 && (
           <p className="admin-empty">Nenhuma promoção cadastrada ainda.</p>
         )}
         {safePromos.map((p) => (

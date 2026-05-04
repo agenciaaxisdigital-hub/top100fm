@@ -37,10 +37,16 @@ export function PodcastsManager() {
 
   const [live, setLive] = useState({ active: false, url: "", title: "" });
   const [liveSaving, setLiveSaving] = useState(false);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const data = await getPodcastsAdmin();
-    setItems(Array.isArray(data) ? (data as PodcastItemAdmin[]) : []);
+    setLoadErr(null);
+    try {
+      const data = await getPodcastsAdmin();
+      setItems(Array.isArray(data) ? (data as PodcastItemAdmin[]) : []);
+    } catch (e: any) {
+      setLoadErr(e?.message || "Erro ao carregar podcasts");
+    }
   }, []);
 
   const loadLive = useCallback(async () => {
@@ -240,7 +246,13 @@ export function PodcastsManager() {
       )}
 
       <div className="admin-list">
-        {safeItems.length === 0 && <p className="admin-empty">Nenhum podcast cadastrado.</p>}
+        {loadErr && (
+          <div className="admin-error">
+            <span>⚠ {loadErr}</span>
+            <button className="admin-btn-secondary" onClick={load}>Tentar novamente</button>
+          </div>
+        )}
+        {!loadErr && safeItems.length === 0 && <p className="admin-empty">Nenhum podcast cadastrado.</p>}
         {safeItems.map((p) => {
           const ytId = getYtId(p.youtube_url);
           const thumb =

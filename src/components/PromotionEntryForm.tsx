@@ -3,6 +3,8 @@ import { submitPromotionEntry } from "@/lib/public-api";
 import { LgpdTermsModal } from "@/components/LgpdTermsModal";
 import logo from "@/assets/top100-logo.png";
 
+const RADIO_INSTAGRAM = "https://www.instagram.com/top100fmoficial";
+
 const maskCpf = (v: string) => v.replace(/\D/g, "").slice(0, 11)
   .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 const maskPhone = (v: string) => v.replace(/\D/g, "").slice(0, 11)
@@ -31,6 +33,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
     setLoading(true);
     try {
       await submitPromotionEntry({ data: { promotion_id: promotionId, ...form } });
+      window.open(RADIO_INSTAGRAM, "_blank", "noopener,noreferrer");
       onSuccess();
     } catch (e: any) {
       setErr(e?.message || "Erro ao enviar");
