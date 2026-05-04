@@ -65,10 +65,11 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
           : file.name;
       const base64 = await blobToDataUrl(compressed);
       const contentType = compressed.type || file.type || "image/jpeg";
-      const { publicUrl } = await uploadImage({
+      const result = await uploadImage({
         data: { filename: finalName, contentType, base64 },
       });
-      onUploaded(publicUrl);
+      if (!result?.publicUrl) throw new Error("Upload falhou: bucket 'media' não encontrado no Supabase Storage");
+      onUploaded(result.publicUrl);
     } catch (err) {
       console.error("Upload error:", err);
       const message = err instanceof Error ? err.message : "Erro desconhecido";

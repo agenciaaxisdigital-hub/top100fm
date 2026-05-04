@@ -351,10 +351,16 @@ export const uploadImage = createAdminServerFn("POST")
       upsert: true,
     });
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      const hint = error.message.toLowerCase().includes("bucket")
+        ? " — crie o bucket 'media' (público) no Supabase Storage"
+        : "";
+      throw new Error(`${error.message}${hint}`);
+    }
 
-    const publicUrl = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
-    return { path, publicUrl };
+    const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+    if (!urlData?.publicUrl) throw new Error("Upload realizado mas URL pública não retornada");
+    return { path, publicUrl: urlData.publicUrl };
   });
 
 export const triggerAutoNewsManual = createAdminServerFn("POST").handler(async () => {
