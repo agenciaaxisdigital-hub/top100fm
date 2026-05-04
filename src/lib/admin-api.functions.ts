@@ -322,58 +322,29 @@ export const deletePromotionEntry = createAdminServerFn("POST")
     return { success: true };
   });
 
-// Uses createServerFn directly (no middleware) — auth is verified inline so errors
-// are returned as data instead of thrown (avoids TanStack swallowing middleware exceptions).
+// getUploadUrl: usa adminClientTokenMiddleware (envia x-admin-token) + auth inline no handler.
+// Nunca lança exceção — sempre retorna objeto com error string ou signedUrl válida.
+// O browser faz o PUT direto ao Supabase (bypass do limite 4.5MB do Vercel).
 export const getUploadUrl = createServerFn({ method: "POST" })
+  .middleware([adminClientTokenMiddleware])
   .inputValidator((input: { filename: string; contentType: string }) => input)
   .handler(async ({ data }) => {
     try {
       const secret = await getAdminSecret();
       const token = getRequestHeader("x-admin-token");
-      const authed = secret ? await verifyAdminToken(token, secret) : false;
-      if (!authed) return { signedUrl: null, token: null, path: null, publicUrl: null, error: "Não autorizado" };
+      if (!secret || !(await verifyAdminToken(token, secret))) {
+        return { signedUrl: null, publicUrl: null, error: "Sessão expirada — faça logout e login novamente" };
+      }
 
       const supabase = await getAdminSupabase();
       const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `uploads/${Date.now()}-${safeName}`;
       const { data: result, error } = await supabase.storage.from("media").createSignedUploadUrl(path);
-      if (error) return { signedUrl: null, token: null, path: null, publicUrl: null, error: error.message };
-      const publicUrl = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
-      return { signedUrl: result.signedUrl, token: result.token, path, publicUrl, error: null };
+      if (error) return { signedUrl: null, publicUrl: null, error: `Storage: ${error.message}` };
+      const publicUrl = supabase.storage.from("media").getPublicUrl(path).data.publicUrl ?? null;
+      return { signedUrl: result.signedUrl, publicUrl, error: null };
     } catch (e) {
-      return { signedUrl: null, token: null, path: null, publicUrl: null, error: e instanceof Error ? e.message : "Erro" };
-    }
-  });
-
-export const uploadImage = createAdminServerFn("POST")
-  .inputValidator((input: { filename: string; contentType: string; base64: string }) => input)
-  .handler(async ({ data }) => {
-    try {
-      const supabase = await getAdminSupabase();
-      const contentType = data.contentType || "image/jpeg";
-
-      if (!contentType.startsWith("image/")) {
-        return { path: null, publicUrl: null, error: "Arquivo inválido: envie uma imagem." };
-      }
-
-      const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `uploads/${Date.now()}-${safeName}`;
-      const rawBase64 = data.base64.includes(",") ? data.base64.split(",").pop() || "" : data.base64;
-      const binary = Uint8Array.from(atob(rawBase64), (char) => char.charCodeAt(0));
-
-      const { error } = await supabase.storage.from("media").upload(path, binary, {
-        contentType,
-        upsert: true,
-      });
-
-      if (error) {
-        return { path: null, publicUrl: null, error: `Storage: ${error.message}` };
-      }
-
-      const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
-      return { path, publicUrl: urlData?.publicUrl ?? null, error: null };
-    } catch (e) {
-      return { path: null, publicUrl: null, error: e instanceof Error ? e.message : "Erro desconhecido" };
+      return { signedUrl: null, publicUrl: null, error: e instanceof Error ? e.message : "Erro interno" };
     }
   });
 
