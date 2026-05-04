@@ -1,20 +1,23 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 import type { Database } from "@/integrations/supabase/types";
-import { resolveRuntimeEnv } from "@/lib/runtime-env";
 
 let adminClient: SupabaseClient<Database> | null = null;
 
 export async function getAdminSupabase() {
   if (adminClient) return adminClient;
 
-  // URL is non-sensitive — VITE_ fallback is fine.
-  // Service role key is server-only — must NOT use VITE_ prefix fallback.
+  // Literal member access so Vite's define can statically replace at build time,
+  // and Node.js process.env provides the value at runtime if not baked in.
   const url =
     import.meta.env.VITE_MY_SUPABASE_URL ||
     import.meta.env.VITE_SUPABASE_URL ||
-    (await resolveRuntimeEnv("MY_SUPABASE_URL", "SUPABASE_URL"));
-  const key = await resolveRuntimeEnv("MY_SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY");
+    process.env.MY_SUPABASE_URL ||
+    process.env.SUPABASE_URL;
+
+  const key =
+    process.env.MY_SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
     throw new Error(
