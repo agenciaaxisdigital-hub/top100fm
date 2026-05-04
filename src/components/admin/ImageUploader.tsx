@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { uploadImage } from "@/lib/admin-api";
+import { getUploadUrl } from "@/lib/admin-api";
 import { ImageIcon } from "./icons";
 
 const MAX_DIM = 2400;
@@ -37,14 +37,6 @@ async function compressImage(file: File): Promise<Blob> {
   return blob || file;
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result as string);
-    r.onerror = () => reject(new Error("read"));
-    r.readAsDataURL(blob);
-  });
-}
 
 export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
@@ -59,18 +51,25 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
     setUploading(true);
     try {
       const compressed = await compressImage(file);
+      const contentType = compressed.type || file.type || "image/jpeg";
       const finalName =
-        compressed.type === "image/jpeg" && !/\.jpe?g$/i.test(file.name)
+        contentType === "image/jpeg" && !/\.jpe?g$/i.test(file.name)
           ? file.name.replace(/\.[^.]+$/, "") + ".jpg"
           : file.name;
-      const base64 = await blobToDataUrl(compressed);
-      const contentType = compressed.type || file.type || "image/jpeg";
-      const result = await uploadImage({
-        data: { filename: finalName, contentType, base64 },
+
+      // Step 1: get a signed upload URL from the server (small payload)
+      const urlResult = await getUploadUrl({ data: { filename: finalName, contentType } });
+      if (!urlResult?.signedUrl) throw new Error("Não foi possível obter URL de upload");
+
+      // Step 2: upload directly from browser to Supabase Storage (bypasses Vercel body limit)
+      const uploadRes = await fetch(urlResult.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": contentType },
+        body: compressed,
       });
-      if (!result) throw new Error("Sem resposta do servidor");
-      if (result.error || !result.publicUrl) throw new Error(result.error || "URL pública não retornada");
-      onUploaded(result.publicUrl);
+      if (!uploadRes.ok) throw new Error(`Upload direto falhou: ${uploadRes.status} ${uploadRes.statusText}`);
+
+      onUploaded(urlResult.publicUrl);
     } catch (err) {
       console.error("Upload error:", err);
       const message = err instanceof Error ? err.message : "Erro desconhecido";

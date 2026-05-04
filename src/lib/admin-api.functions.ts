@@ -322,13 +322,17 @@ export const deletePromotionEntry = createAdminServerFn("POST")
 export const getUploadUrl = createAdminServerFn("POST")
   .inputValidator((input: { filename: string; contentType: string }) => input)
   .handler(async ({ data }) => {
+    try {
       const supabase = await getAdminSupabase();
-    const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const path = `uploads/${Date.now()}-${safeName}`;
-    const { data: result, error } = await supabase.storage.from("media").createSignedUploadUrl(path);
-    if (error) throw new Error(error.message);
-    const publicUrl = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
-    return { signedUrl: result.signedUrl, token: result.token, path, publicUrl };
+      const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `uploads/${Date.now()}-${safeName}`;
+      const { data: result, error } = await supabase.storage.from("media").createSignedUploadUrl(path);
+      if (error) return { signedUrl: null, token: null, path: null, publicUrl: null, error: error.message };
+      const publicUrl = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
+      return { signedUrl: result.signedUrl, token: result.token, path, publicUrl, error: null };
+    } catch (e) {
+      return { signedUrl: null, token: null, path: null, publicUrl: null, error: e instanceof Error ? e.message : "Erro" };
+    }
   });
 
 export const uploadImage = createAdminServerFn("POST")
