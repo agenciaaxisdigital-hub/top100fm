@@ -119,9 +119,13 @@ async function countTodayAutoNews(adminClient: any): Promise<number> {
   return count ?? 0;
 }
 
-export async function runNewsIngestWithClient(adminClient: any): Promise<NewsIngestResult> {
-  const todayCount = await countTodayAutoNews(adminClient);
-  const budget = MAX_DAILY - todayCount;
+export async function runNewsIngestWithClient(
+  adminClient: any,
+  opts?: { force?: boolean },
+): Promise<NewsIngestResult> {
+  const budget = opts?.force
+    ? MAX_DAILY
+    : MAX_DAILY - (await countTodayAutoNews(adminClient));
   if (budget <= 0) return { inserted: 0, skipped: 0, total: 0 };
 
   const items = await fetchAndParse();

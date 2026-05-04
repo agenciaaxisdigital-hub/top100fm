@@ -370,6 +370,19 @@ export const triggerAutoNewsManual = createAdminServerFn("POST").handler(async (
   }
 });
 
+export const triggerAutoNewsForce = createAdminServerFn("POST").handler(async () => {
+  try {
+    const supabase = await getAdminSupabase();
+    const { runNewsIngestWithClient } = await import("./news-auto.shared");
+    const result = await runNewsIngestWithClient(supabase, { force: true });
+    return result ?? { inserted: 0, skipped: 0, total: 0 };
+  } catch (e) {
+    console.error("[triggerAutoNewsForce] erro:", e);
+    const message = e instanceof Error ? e.message : "Falha ao buscar notícias";
+    throw new Error(message);
+  }
+});
+
 export const getSiteSettings = createAdminServerFn("GET").handler(async () => {
   const supabase = await getAdminSupabase();
   const { data, error } = await (supabase as any).from("site_settings").select("*");

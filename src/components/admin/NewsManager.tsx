@@ -7,6 +7,7 @@ import {
   getSiteSettings,
   updateSiteSettings,
   triggerAutoNewsManual,
+  triggerAutoNewsForce,
 } from "@/lib/admin-api";
 import { ImageUploader } from "./ImageUploader";
 import { NewsIcon, PencilIcon, PinIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
@@ -29,6 +30,8 @@ export function NewsManager() {
   const [autoEnabled, setAutoEnabled] = useState(false);
   const [autoBusy, setAutoBusy] = useState(false);
   const [autoMsg, setAutoMsg] = useState<string | null>(null);
+  const [forceBusy, setForceBusy] = useState(false);
+  const [forceMsg, setForceMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [data, settings] = await Promise.all([getNews(), getSiteSettings()]);
@@ -57,6 +60,20 @@ export function NewsManager() {
       setAutoMsg(`Erro: ${e instanceof Error ? e.message : "falhou"}`);
     } finally {
       setAutoBusy(false);
+    }
+  };
+
+  const runForce = async () => {
+    setForceBusy(true);
+    setForceMsg(null);
+    try {
+      const r = await triggerAutoNewsForce();
+      setForceMsg(`⚡ ${r.inserted} novas forçadas, ${r.skipped} já existentes (de ${r.total} encontradas)`);
+      load();
+    } catch (e) {
+      setForceMsg(`Erro: ${e instanceof Error ? e.message : "falhou"}`);
+    } finally {
+      setForceBusy(false);
     }
   };
 
@@ -151,6 +168,7 @@ export function NewsManager() {
             Quando ligado, o cron busca e publica notícias dos portais oficiais automaticamente.
           </p>
           {autoMsg && <p style={{ margin: "6px 0 0", fontSize: 13 }}>{autoMsg}</p>}
+          {forceMsg && <p style={{ margin: "6px 0 0", fontSize: 13 }}>{forceMsg}</p>}
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
@@ -159,6 +177,9 @@ export function NewsManager() {
           </label>
           <button className="admin-btn-secondary" onClick={runNow} disabled={autoBusy}>
             {autoBusy ? "Buscando..." : "Buscar agora"}
+          </button>
+          <button className="admin-btn-primary" onClick={runForce} disabled={forceBusy}>
+            {forceBusy ? "Buscando..." : "⚡ Forçar +5"}
           </button>
         </div>
       </div>

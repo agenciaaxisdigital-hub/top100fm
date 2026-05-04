@@ -22,6 +22,7 @@ export {
   getUploadUrl,
   uploadImage,
   triggerAutoNewsManual,
+  triggerAutoNewsForce,
   getSiteSettings,
   updateSiteSettings,
 } from "./admin-api.functions";
