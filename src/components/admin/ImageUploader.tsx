@@ -68,7 +68,8 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
       const result = await uploadImage({
         data: { filename: finalName, contentType, base64 },
       });
-      if (!result?.publicUrl) throw new Error("Upload falhou: bucket 'media' não encontrado no Supabase Storage");
+      if (!result) throw new Error("Sem resposta do servidor");
+      if (result.error || !result.publicUrl) throw new Error(result.error || "URL pública não retornada");
       onUploaded(result.publicUrl);
     } catch (err) {
       console.error("Upload error:", err);

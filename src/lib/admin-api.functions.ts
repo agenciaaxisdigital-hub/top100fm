@@ -334,33 +334,33 @@ export const getUploadUrl = createAdminServerFn("POST")
 export const uploadImage = createAdminServerFn("POST")
   .inputValidator((input: { filename: string; contentType: string; base64: string }) => input)
   .handler(async ({ data }) => {
-    const supabase = await getAdminSupabase();
-    const contentType = data.contentType || "image/jpeg";
+    try {
+      const supabase = await getAdminSupabase();
+      const contentType = data.contentType || "image/jpeg";
 
-    if (!contentType.startsWith("image/")) {
-      throw new Error("Arquivo inválido: envie uma imagem.");
+      if (!contentType.startsWith("image/")) {
+        return { path: null, publicUrl: null, error: "Arquivo inválido: envie uma imagem." };
+      }
+
+      const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `uploads/${Date.now()}-${safeName}`;
+      const rawBase64 = data.base64.includes(",") ? data.base64.split(",").pop() || "" : data.base64;
+      const binary = Uint8Array.from(atob(rawBase64), (char) => char.charCodeAt(0));
+
+      const { error } = await supabase.storage.from("media").upload(path, binary, {
+        contentType,
+        upsert: true,
+      });
+
+      if (error) {
+        return { path: null, publicUrl: null, error: `Storage: ${error.message}` };
+      }
+
+      const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+      return { path, publicUrl: urlData?.publicUrl ?? null, error: null };
+    } catch (e) {
+      return { path: null, publicUrl: null, error: e instanceof Error ? e.message : "Erro desconhecido" };
     }
-
-    const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const path = `uploads/${Date.now()}-${safeName}`;
-    const rawBase64 = data.base64.includes(",") ? data.base64.split(",").pop() || "" : data.base64;
-    const binary = Uint8Array.from(atob(rawBase64), (char) => char.charCodeAt(0));
-
-    const { error } = await supabase.storage.from("media").upload(path, binary, {
-      contentType,
-      upsert: true,
-    });
-
-    if (error) {
-      const hint = error.message.toLowerCase().includes("bucket")
-        ? " — crie o bucket 'media' (público) no Supabase Storage"
-        : "";
-      throw new Error(`${error.message}${hint}`);
-    }
-
-    const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
-    if (!urlData?.publicUrl) throw new Error("Upload realizado mas URL pública não retornada");
-    return { path, publicUrl: urlData.publicUrl };
   });
 
 export const triggerAutoNewsManual = createAdminServerFn("POST").handler(async () => {
