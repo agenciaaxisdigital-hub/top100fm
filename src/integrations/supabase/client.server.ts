@@ -3,29 +3,16 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-type ServerEnvKey =
-  | 'SUPABASE_URL'
-  | 'SUPABASE_SERVICE_ROLE_KEY'
-  | 'MY_SUPABASE_URL'
-  | 'MY_SUPABASE_SERVICE_ROLE_KEY';
-
-function getServerEnv(key: ServerEnvKey): string | undefined {
-  if (typeof process !== 'undefined' && process.env) {
-    const v = process.env[key];
-    if (typeof v === 'string' && v.length > 0) return v;
-  }
-  const g: any = globalThis as any;
-  const gv = g?.[key] ?? g?.env?.[key] ?? g?.process?.env?.[key];
-  if (typeof gv === 'string' && gv.length > 0) return gv;
-  return undefined;
-}
-
 type SupabaseAdminClient = ReturnType<typeof createClient<Database>>;
 
 function createSupabaseAdminClientSync(): SupabaseAdminClient {
-  const SUPABASE_URL = getServerEnv('MY_SUPABASE_URL') || getServerEnv('SUPABASE_URL');
+  // Literal member access — Vite define replaces at build time; Node.js process.env at runtime.
+  const SUPABASE_URL =
+    process.env.MY_SUPABASE_URL ||
+    process.env.SUPABASE_URL;
   const SUPABASE_SERVICE_ROLE_KEY =
-    getServerEnv('MY_SUPABASE_SERVICE_ROLE_KEY') || getServerEnv('SUPABASE_SERVICE_ROLE_KEY');
+    process.env.MY_SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error(
