@@ -1,4 +1,4 @@
-import { createAdminServerFn, getAdminSecret } from "@/lib/admin-serverfn";
+import { createAdminServerFn, getAdminSecret, adminClientTokenMiddleware } from "@/lib/admin-serverfn";
 import { getAdminSupabase, hashAdminPassword } from "@/lib/admin-supabase";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
