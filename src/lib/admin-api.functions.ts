@@ -1,5 +1,8 @@
-import { createAdminServerFn } from "@/lib/admin-serverfn";
+import { createAdminServerFn, getAdminSecret } from "@/lib/admin-serverfn";
 import { getAdminSupabase, hashAdminPassword } from "@/lib/admin-supabase";
+import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
+import { verifyAdminToken } from "@/lib/admin-token";
 
 export const getPromotions = createAdminServerFn("GET").handler(async () => {
   const supabase = await getAdminSupabase();
@@ -319,10 +322,17 @@ export const deletePromotionEntry = createAdminServerFn("POST")
     return { success: true };
   });
 
-export const getUploadUrl = createAdminServerFn("POST")
+// Uses createServerFn directly (no middleware) — auth is verified inline so errors
+// are returned as data instead of thrown (avoids TanStack swallowing middleware exceptions).
+export const getUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((input: { filename: string; contentType: string }) => input)
   .handler(async ({ data }) => {
     try {
+      const secret = await getAdminSecret();
+      const token = getRequestHeader("x-admin-token");
+      const authed = secret ? await verifyAdminToken(token, secret) : false;
+      if (!authed) return { signedUrl: null, token: null, path: null, publicUrl: null, error: "Não autorizado" };
+
       const supabase = await getAdminSupabase();
       const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `uploads/${Date.now()}-${safeName}`;

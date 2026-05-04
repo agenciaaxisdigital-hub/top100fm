@@ -57,9 +57,9 @@ export function ImageUploader({ onUploaded }: { onUploaded: (url: string) => voi
           ? file.name.replace(/\.[^.]+$/, "") + ".jpg"
           : file.name;
 
-      // Step 1: get a signed upload URL from the server (small payload)
+      // Step 1: get a signed upload URL from the server (small payload, inline auth)
       const urlResult = await getUploadUrl({ data: { filename: finalName, contentType } });
-      if (!urlResult?.signedUrl) throw new Error("Não foi possível obter URL de upload");
+      if (!urlResult?.signedUrl) throw new Error(urlResult?.error || "Não foi possível obter URL de upload");
 
       // Step 2: upload directly from browser to Supabase Storage (bypasses Vercel body limit)
       const uploadRes = await fetch(urlResult.signedUrl, {
