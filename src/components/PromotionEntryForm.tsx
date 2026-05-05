@@ -17,7 +17,6 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(3);
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
@@ -38,18 +37,6 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
     try {
       await submitPromotionEntry({ data: { promotion_id: promotionId, ...form } });
       setSuccess(true);
-      setCountdown(3);
-      let c = 3;
-      const timer = setInterval(() => {
-        c -= 1;
-        setCountdown(c);
-        if (c <= 0) {
-          clearInterval(timer);
-          onSuccess();
-          // Redireciona após fechar o popup (window.location evita bloqueio de popup mobile)
-          setTimeout(() => { window.location.href = RADIO_INSTAGRAM; }, 80);
-        }
-      }, 1000);
     } catch (e: any) {
       setErr(e?.message || "Erro ao enviar");
     } finally {
@@ -211,17 +198,37 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           </div>
 
           {success ? (
-            <div className="promo-form-body" style={{ textAlign: "center", padding: "40px 28px" }}>
-              <div style={{ fontSize: 56, marginBottom: 12 }}>🎉</div>
-              <h3 style={{ color: "#0a1f44", fontWeight: 800, fontSize: 20, marginBottom: 8 }}>
-                Inscrição confirmada!
+            <div className="promo-form-body" style={{ textAlign: "center", padding: "36px 28px" }}>
+              <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
+              <h3 style={{ color: "#0a1f44", fontWeight: 800, fontSize: 20, marginBottom: 10 }}>
+                Inscrição realizada!
               </h3>
-              <p style={{ color: "#4b5563", fontSize: 14, marginBottom: 20 }}>
-                Você está participando da promoção. Boa sorte!
+              <p style={{ color: "#374151", fontSize: 14, marginBottom: 6, lineHeight: 1.5 }}>
+                Para <strong>finalizar sua inscrição</strong>, siga o Instagram oficial da rádio:
               </p>
-              <p style={{ color: "#6b7280", fontSize: 13 }}>
-                Redirecionando para o Instagram da rádio em <strong style={{ color: "#0a1f44" }}>{countdown}s</strong>...
+              <p style={{ color: "#0a1f44", fontWeight: 700, fontSize: 15, marginBottom: 22 }}>
+                @top100fmoficial
               </p>
+              <a
+                href={RADIO_INSTAGRAM}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onSuccess}
+                style={{
+                  display: "inline-block",
+                  background: "linear-gradient(135deg, #0a1f44 0%, #1e3a7a 100%)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  padding: "13px 28px",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  letterSpacing: 0.4,
+                  boxShadow: "0 4px 12px rgba(10,31,68,0.25)",
+                }}
+              >
+                Seguir no Instagram →
+              </a>
             </div>
           ) : (
           <div className="promo-form-body">
