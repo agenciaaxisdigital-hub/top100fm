@@ -163,34 +163,63 @@ export function EntriesManager() {
           const cepClean = r.cep?.replace(/\D/g, "") || "";
           const cepInfo = cepClean ? cepMap[cepClean] : null;
           const address = cepInfo ? formatAddress(cepInfo) : null;
+          const cepStatus = !cepClean
+            ? "—"
+            : cepMap[cepClean] === undefined
+            ? "carregando..."
+            : cepMap[cepClean] === null
+            ? "CEP não encontrado"
+            : address || "—";
           return (
-            <article key={r.id} className="admin-list-item" style={{ alignItems: "flex-start" }}>
-              <div className="admin-list-info" style={{ flex: 1 }}>
-                <h4 style={{ marginBottom: 6 }}>{r.full_name}</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "2px 16px", fontSize: 13, color: "var(--muted-foreground, #666)" }}>
-                  <span><strong>WhatsApp:</strong> {r.whatsapp}</span>
-                  <span><strong>CPF:</strong> {formatCpf(r.cpf)}</span>
-                  <span><strong>Instagram:</strong> {r.instagram}</span>
-                  <span><strong>Nascimento:</strong> {r.birth_date ? formatDate(r.birth_date) : "—"}</span>
-                  <span><strong>CEP:</strong> {r.cep ? formatCep(r.cep) : "—"}</span>
-                  {cepClean && (
-                    <span style={{ gridColumn: "1/-1" }}>
-                      <strong>Endereço:</strong>{" "}
-                      {address || (cepMap[cepClean] === null ? "CEP não encontrado" : "carregando...")}
-                    </span>
-                  )}
+            <article key={r.id} className="admin-list-item" style={{ alignItems: "flex-start", flexDirection: "column", gap: 0, padding: "16px 18px" }}>
+              {/* Cabeçalho */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", marginBottom: 12 }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{r.full_name}</h4>
+                  <div style={{ marginTop: 4, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <span className="admin-tag" style={{ margin: 0 }}>{r.promotions?.title || "—"}</span>
+                    <span className="admin-tag tag-muted" style={{ margin: 0 }}>{new Date(r.created_at).toLocaleString("pt-BR")}</span>
+                  </div>
                 </div>
-                <div className="admin-list-tags" style={{ marginTop: 8 }}>
-                  <span className="admin-tag">{r.promotions?.title || "—"}</span>
-                  <span className="admin-tag tag-muted">
-                    {new Date(r.created_at).toLocaleString("pt-BR")}
-                  </span>
-                </div>
-              </div>
-              <div className="admin-list-actions" style={{ paddingTop: 4 }}>
-                <button className="danger" onClick={() => remove(r.id)} title="Excluir">
+                <button className="danger" onClick={() => remove(r.id)} title="Excluir" style={{ flexShrink: 0, marginLeft: 12 }}>
                   <TrashIcon />
                 </button>
+              </div>
+
+              {/* Dados pessoais */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "6px 20px", fontSize: 13, width: "100%" }}>
+                <div>
+                  <span style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>WhatsApp</span>
+                  <div style={{ color: "#111827", fontWeight: 500 }}>{r.whatsapp}</div>
+                </div>
+                <div>
+                  <span style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>CPF</span>
+                  <div style={{ color: "#111827", fontWeight: 500 }}>{formatCpf(r.cpf)}</div>
+                </div>
+                <div>
+                  <span style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Instagram</span>
+                  <div style={{ color: "#111827", fontWeight: 500 }}>{r.instagram || "—"}</div>
+                </div>
+                <div>
+                  <span style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Nascimento</span>
+                  <div style={{ color: "#111827", fontWeight: 500 }}>{r.birth_date ? formatDate(r.birth_date) : "—"}</div>
+                </div>
+              </div>
+
+              {/* CEP + Endereço */}
+              <div style={{ marginTop: 10, padding: "10px 14px", background: "#f4f6fb", borderRadius: 8, width: "100%", boxSizing: "border-box" }}>
+                <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                  <div>
+                    <span style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>CEP</span>
+                    <div style={{ color: "#111827", fontWeight: 500, fontSize: 13 }}>{r.cep ? formatCep(r.cep) : "—"}</div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <span style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Endereço</span>
+                    <div style={{ color: cepMap[cepClean] === null ? "#9ca3af" : "#111827", fontWeight: 500, fontSize: 13 }}>
+                      {cepStatus}
+                    </div>
+                  </div>
+                </div>
               </div>
             </article>
           );
