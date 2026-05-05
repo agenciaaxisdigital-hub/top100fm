@@ -208,6 +208,46 @@ export const triggerNewsIngestNow = createServerFn({ method: "POST" })
     return result ?? { inserted: 0, skipped: 0, total: 0 };
   });
 
+// Busca og:image para notícias auto-geradas que estão sem imagem
+export const fixMissingNewsImages = createServerFn({ method: "POST" })
+  .inputValidator((input: Record<string, never>) => input)
+  .handler(async () => {
+    const { url, key } = await getServiceRoleClient();
+    if (!url || !key) throw new Error("Service role key não configurada");
+    const { createClient } = await import("@supabase/supabase-js");
+    const adminClient = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+
+    const { data: rows } = await adminClient
+      .from("news")
+      .select("id, source_url")
+      .eq("auto_generated", true)
+      .or("image_url.is.null,image_url.eq.")
+      .limit(20);
+
+    if (!rows?.length) return { fixed: 0 };
+
+    let fixed = 0;
+    for (const row of rows) {
+      if (!row.source_url) continue;
+      try {
+        const res = await fetch(row.source_url, {
+          headers: { "User-Agent": "Mozilla/5.0 RadioBot/1.0" },
+          signal: AbortSignal.timeout(4000),
+        });
+        if (!res.ok) continue;
+        const html = await res.text();
+        const m =
+          html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
+          html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:image"/i);
+        const img = m?.[1];
+        if (!img) continue;
+        const { error } = await adminClient.from("news").update({ image_url: img }).eq("id", row.id);
+        if (!error) fixed++;
+      } catch { /* skip */ }
+    }
+    return { fixed };
+  });
+
 // ── Site Settings (Public) ──
 
 export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(async () => {

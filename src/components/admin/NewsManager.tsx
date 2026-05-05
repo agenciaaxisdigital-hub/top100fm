@@ -6,7 +6,7 @@ import {
   getSiteSettings,
   updateSiteSettings,
 } from "@/lib/admin-api";
-import { getAllNewsAdmin, triggerNewsIngestNow } from "@/lib/public-api";
+import { getAllNewsAdmin, triggerNewsIngestNow, fixMissingNewsImages } from "@/lib/public-api";
 import { ImageUploader } from "./ImageUploader";
 import { NewsIcon, PencilIcon, PinIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import type { NewsItem } from "./types";
@@ -30,6 +30,8 @@ export function NewsManager() {
   const [autoMsg, setAutoMsg] = useState<string | null>(null);
   const [forceBusy, setForceBusy] = useState(false);
   const [forceMsg, setForceMsg] = useState<string | null>(null);
+  const [fixBusy, setFixBusy] = useState(false);
+  const [fixMsg, setFixMsg] = useState<string | null>(null);
 
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -70,6 +72,20 @@ export function NewsManager() {
       setAutoMsg(`Erro: ${e instanceof Error ? e.message : "falhou"}`);
     } finally {
       setAutoBusy(false);
+    }
+  };
+
+  const fixImages = async () => {
+    setFixBusy(true);
+    setFixMsg(null);
+    try {
+      const r = await fixMissingNewsImages({ data: {} });
+      setFixMsg(`🖼 ${r?.fixed ?? 0} imagens corrigidas`);
+      load();
+    } catch (e) {
+      setFixMsg(`Erro: ${e instanceof Error ? e.message : "falhou"}`);
+    } finally {
+      setFixBusy(false);
     }
   };
 
@@ -179,6 +195,7 @@ export function NewsManager() {
           </p>
           {autoMsg && <p style={{ margin: "6px 0 0", fontSize: 13 }}>{autoMsg}</p>}
           {forceMsg && <p style={{ margin: "6px 0 0", fontSize: 13 }}>{forceMsg}</p>}
+          {fixMsg && <p style={{ margin: "6px 0 0", fontSize: 13 }}>{fixMsg}</p>}
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
@@ -190,6 +207,9 @@ export function NewsManager() {
           </button>
           <button className="admin-btn-primary" onClick={runForce} disabled={forceBusy}>
             {forceBusy ? "Buscando..." : "⚡ Forçar +5"}
+          </button>
+          <button className="admin-btn-secondary" onClick={fixImages} disabled={fixBusy} title="Busca imagem no site original para notícias sem foto">
+            {fixBusy ? "Buscando..." : "🖼 Corrigir imagens"}
           </button>
         </div>
       </div>

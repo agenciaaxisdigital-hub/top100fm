@@ -1,10 +1,9 @@
+// Feeds testados e confirmados funcionais (Câmara/Senado retornam 405/HTML)
 const FEEDS = [
-  { name: "Câmara dos Deputados", url: "https://www.camara.leg.br/noticias/rss" },
-  { name: "TV Câmara", url: "https://www.camara.leg.br/noticias/rss/19" },
-  { name: "Senado Federal", url: "https://www12.senado.leg.br/noticias/ultimas/feed" },
-  { name: "TV Senado", url: "https://www12.senado.leg.br/radio/rss/ultimas-noticias" },
-  { name: "Gov.br", url: "https://www.gov.br/pt-br/noticias/RSS" },
   { name: "Agência Brasil", url: "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml" },
+  { name: "Agência Brasil – Política", url: "https://agenciabrasil.ebc.com.br/rss/politica/feed.xml" },
+  { name: "Agência Brasil – Economia", url: "https://agenciabrasil.ebc.com.br/rss/economia/feed.xml" },
+  { name: "Gov.br", url: "https://www.gov.br/noticias/RSS" },
 ];
 
 const MAX_PER_FEED = 3;
@@ -27,14 +26,10 @@ function stripCdata(s: string): string {
 }
 
 function stripHtml(s: string): string {
-  // Decodifica entidades ANTES de remover tags (RSS pode guardar HTML como &lt;p&gt;)
   let clean = decodeEntities(stripCdata(s));
-  // Remove scripts/styles completos
   clean = clean.replace(/<script[\s\S]*?<\/script>/gi, "");
   clean = clean.replace(/<style[\s\S]*?<\/style>/gi, "");
-  // Remove todas as tags HTML
   clean = clean.replace(/<[^>]*>/g, " ");
-  // Segunda passagem de decode + normaliza espaços
   return decodeEntities(clean).replace(/\s+/g, " ").trim();
 }
 
@@ -43,21 +38,59 @@ function pickTag(item: string, tag: string): string {
   return m ? stripCdata(m[1]) : "";
 }
 
+// Extrai URL de imagem do item RSS — suporta vários formatos de feed
 function pickImage(item: string): string {
+  // 1. Agência Brasil usa <imagem-destaque>URL</imagem-destaque>
+  const imgDest = item.match(/<imagem-destaque[^>]*>([\s\S]*?)<\/imagem-destaque>/i);
+  if (imgDest) {
+    const url = imgDest[1].trim();
+    if (url.startsWith("http")) return url;
+  }
+
+  // 2. <enclosure url="..." type="image/...">
   const enc =
     item.match(/<enclosure[^>]*url="([^"]+)"[^>]*type="image/i) ||
     item.match(/<enclosure[^>]*type="image[^"]*"[^>]*url="([^"]+)"/i);
   if (enc) return enc[1];
+
+  // 3. <media:content> ou <media:thumbnail>
   const media =
     item.match(/<media:content[^>]*url="([^"]+)"/i) ||
     item.match(/<media:thumbnail[^>]*url="([^"]+)"/i);
   if (media) return media[1];
-  // Decodifica entidades antes de buscar <img> (RSS pode ter HTML entity-encoded)
+
+  // 4. <img src="..."> dentro de description ou content:encoded
+  //    Decodifica entidades ANTES de buscar tags (RSS guarda HTML entity-encoded)
   const raw = pickTag(item, "content:encoded") || pickTag(item, "description");
   const decoded = decodeEntities(raw);
-  const img = decoded.match(/<img[^>]*src="([^"]+)"/i);
-  if (img) return img[1];
+  const imgs = decoded.match(/<img[^>]*src="([^"]+)"/gi) || [];
+  for (const imgTag of imgs) {
+    const src = imgTag.match(/src="([^"]+)"/i)?.[1] || "";
+    // Ignora logos, rastreadores e imagens 1px
+    if (src && !/logo|loading|1px|1x1|tracking|\.gif(\?|$)|\.svg(\?|$)/i.test(src)) {
+      return src;
+    }
+  }
+
   return "";
+}
+
+// Busca og:image da URL do artigo como último recurso (timeout 4s)
+async function fetchOgImage(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 RadioBot/1.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    const m =
+      html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
+      html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:image"/i);
+    return m ? m[1] : "";
+  } catch {
+    return "";
+  }
 }
 
 type ParsedItem = {
@@ -102,6 +135,8 @@ async function fetchAndParse(): Promise<ParsedItem[]> {
       });
       if (!res.ok) continue;
       const xml = await res.text();
+      // Descarta silenciosamente se não for XML (feed bloqueado retornando HTML)
+      if (!xml.trim().startsWith("<?xml") && !xml.trim().startsWith("<rss") && !xml.includes("<item")) continue;
       all.push(...parseFeed(xml, feed.name));
     } catch (e) {
       console.error(`[news-auto] feed ${feed.name} failed`, e);
@@ -162,11 +197,17 @@ export async function runNewsIngestWithClient(
       continue;
     }
 
+    // Se não veio imagem do RSS, tenta buscar og:image do artigo
+    let image = it.image;
+    if (!image && it.link) {
+      image = await fetchOgImage(it.link);
+    }
+
     const { error } = await adminClient.from("news").insert({
       title: it.title.slice(0, 180),
       summary: it.summary,
       content: `${it.contentRich}\n\nFonte: ${it.source}\n${it.link}`,
-      image_url: it.image || null,
+      image_url: image || null,
       source_url: it.link,
       source_name: it.source,
       auto_generated: true,
