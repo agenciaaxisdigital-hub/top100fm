@@ -121,28 +121,18 @@ export function ProgramacaoManager() {
       {showForm && (
         <div className="admin-form-card">
           <h3>{editing ? "Editar programa" : "Novo programa"}</h3>
-          <div className="admin-row">
-            <div className="admin-field">
-              <label>Dia da semana</label>
-              <select
-                value={form.day_of_week}
-                onChange={(e) => setForm({ ...form, day_of_week: Number(e.target.value) })}
-              >
-                {DAYS_LABELS.map((d, i) => (
-                  <option key={i} value={i}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="admin-field">
-              <label>Ordem</label>
-              <input
-                type="number"
-                value={form.display_order}
-                onChange={(e) => setForm({ ...form, display_order: Number(e.target.value) })}
-              />
-            </div>
+          <div className="admin-field">
+            <label>Dia da semana</label>
+            <select
+              value={form.day_of_week}
+              onChange={(e) => setForm({ ...form, day_of_week: Number(e.target.value) })}
+            >
+              {DAYS_LABELS.map((d, i) => (
+                <option key={i} value={i}>
+                  {d}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="admin-field">
             <label>Nome do programa *</label>
