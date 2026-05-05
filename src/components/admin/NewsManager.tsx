@@ -208,9 +208,6 @@ export function NewsManager() {
           <button className="admin-btn-primary" onClick={runForce} disabled={forceBusy}>
             {forceBusy ? "Buscando..." : "⚡ Forçar +5"}
           </button>
-          <button className="admin-btn-secondary" onClick={fixImages} disabled={fixBusy} title="Busca imagem no site original para notícias sem foto">
-            {fixBusy ? "Buscando..." : "🖼 Corrigir imagens"}
-          </button>
         </div>
       </div>
 
