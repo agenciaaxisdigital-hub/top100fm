@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { submitPromotionEntry } from "@/lib/public-api";
 import { LgpdTermsModal } from "@/components/LgpdTermsModal";
 import logo from "@/assets/top100-logo.png";
-
-const RADIO_INSTAGRAM = "https://www.instagram.com/top100fmoficial";
 
 const maskCpf = (v: string) => v.replace(/\D/g, "").slice(0, 11)
   .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
@@ -16,28 +14,8 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
   const [form, setForm] = useState({ full_name: "", birth_date: "", whatsapp: "", cpf: "", instagram: "", facebook: "", cep: "" });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(3);
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-
-  // Timer de countdown — só ativa após sucesso confirmado
-  useEffect(() => {
-    if (!success) return;
-    let c = 3;
-    setCountdown(3);
-    const tick = setInterval(() => {
-      c -= 1;
-      setCountdown(c);
-      if (c <= 0) {
-        clearInterval(tick);
-        window.location.href = RADIO_INSTAGRAM;
-      }
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [success]);
-
-  const goInstagram = () => { window.location.href = RADIO_INSTAGRAM; };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +25,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
     setLoading(true);
     try {
       await submitPromotionEntry({ data: { promotion_id: promotionId, ...form } });
-      setSuccess(true);
+      onSuccess();
     } catch (e: any) {
       setErr(e?.message || "Erro ao enviar");
     } finally {
@@ -208,41 +186,6 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
             <p>Preencha seus dados e concorra a prêmios</p>
           </div>
 
-          {success ? (
-            <div className="promo-form-body" style={{ textAlign: "center", padding: "36px 28px" }}>
-              <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
-              <h3 style={{ color: "#0a1f44", fontWeight: 800, fontSize: 20, marginBottom: 10 }}>
-                Inscrição realizada!
-              </h3>
-              <p style={{ color: "#374151", fontSize: 14, marginBottom: 6, lineHeight: 1.5 }}>
-                Para <strong>finalizar sua inscrição</strong>, siga o Instagram oficial da rádio:
-              </p>
-              <p style={{ color: "#0a1f44", fontWeight: 700, fontSize: 15, marginBottom: 22 }}>
-                @top100fmoficial
-              </p>
-              <a
-                href={RADIO_INSTAGRAM}
-                onClick={goInstagram}
-                style={{
-                  display: "inline-block",
-                  background: "linear-gradient(135deg, #0a1f44 0%, #1e3a7a 100%)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  padding: "13px 28px",
-                  borderRadius: 8,
-                  textDecoration: "none",
-                  letterSpacing: 0.4,
-                  boxShadow: "0 4px 12px rgba(10,31,68,0.25)",
-                }}
-              >
-                Seguir no Instagram →
-              </a>
-              <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 14 }}>
-                Redirecionando em <strong style={{ color: "#0a1f44" }}>{countdown}s</strong>...
-              </p>
-            </div>
-          ) : (
           <div className="promo-form-body">
             <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <input required placeholder="Nome completo *" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="entry-input" />
@@ -290,7 +233,6 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               </button>
             </form>
           </div>
-          )}
         </div>
       </div>
 
