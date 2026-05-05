@@ -15,15 +15,44 @@ export const getActivePromotions = createServerFn({ method: "GET" }).handler(asy
   return data || [];
 });
 
-// Lê todas as promoções (sem filtro is_active) — usado pelo painel admin
+// Lê TODAS as promoções para o painel admin (service role → sem RLS; fallback para público)
 export const getAllPromotionsAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  // 1. Tenta REST direto com service role key (bypassa RLS e qualquer issue do client JS)
+  const supabaseUrl =
+    process.env.MY_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    import.meta.env.VITE_MY_SUPABASE_URL ||
+    import.meta.env.VITE_SUPABASE_URL;
+  const serviceKey =
+    process.env.MY_SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (supabaseUrl && serviceKey) {
+    try {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/promotions?select=*&order=display_order.asc,created_at.desc`,
+        {
+          headers: {
+            Authorization: `Bearer ${serviceKey}`,
+            apikey: serviceKey,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows)) return rows;
+      }
+    } catch { /* cai no fallback */ }
+  }
+
+  // 2. Fallback: cliente público (sujeito a RLS — retorna apenas ativas)
   const supabase = await getPublicSupabase();
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("promotions")
     .select("*")
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
   return data || [];
 });
 
