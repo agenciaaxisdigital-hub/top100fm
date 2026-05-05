@@ -104,7 +104,7 @@ export type PodcastItem = {
 };
 
 export const submitPromotionEntry = createServerFn({ method: "POST" })
-  .inputValidator((input: { promotion_id: string; full_name: string; birth_date?: string; whatsapp: string; cpf: string; instagram: string; facebook?: string }) => {
+  .inputValidator((input: { promotion_id: string; full_name: string; birth_date?: string; whatsapp: string; cpf: string; instagram: string; facebook?: string; cep?: string }) => {
     const trim = (s: string) => (s || "").trim();
     const data = {
       promotion_id: trim(input.promotion_id),
@@ -114,6 +114,7 @@ export const submitPromotionEntry = createServerFn({ method: "POST" })
       cpf: trim(input.cpf).replace(/\D/g, ""),
       instagram: trim(input.instagram),
       facebook: trim(input.facebook || ""),
+      cep: trim(input.cep || "").replace(/\D/g, ""),
     };
     if (!data.promotion_id) throw new Error("Promoção inválida");
     if (data.full_name.length < 3 || data.full_name.length > 120) throw new Error("Nome inválido");
@@ -121,23 +122,26 @@ export const submitPromotionEntry = createServerFn({ method: "POST" })
     if (data.whatsapp.replace(/\D/g, "").length < 10) throw new Error("WhatsApp inválido");
     if (data.cpf.length !== 11) throw new Error("CPF deve ter 11 dígitos");
     if (!data.instagram || data.instagram.length > 80) throw new Error("Instagram obrigatório");
+    if (data.cep && data.cep.length !== 8) throw new Error("CEP inválido (deve ter 8 dígitos)");
     return data;
   })
   .handler(async ({ data }) => {
     const supabase = await getPublicSupabase();
-    // Try insert with birth_date; fallback if column not yet in schema
     const payload: any = {
       promotion_id: data.promotion_id,
       full_name: data.full_name,
       whatsapp: data.whatsapp,
       cpf: data.cpf,
       instagram: data.instagram,
-      facebook: data.facebook || data.instagram, // keep legacy NOT NULL safe
+      facebook: data.facebook || data.instagram,
       birth_date: data.birth_date,
+      cep: data.cep || null,
     };
     let { error } = await (supabase as any).from("promotion_entries").insert(payload);
-    if (error && /birth_date/i.test(error.message || "")) {
+    // Fallback se colunas ainda não existem no schema
+    if (error && /birth_date|cep/i.test(error.message || "")) {
       delete payload.birth_date;
+      delete payload.cep;
       ({ error } = await (supabase as any).from("promotion_entries").insert(payload));
     }
     if (error) {
@@ -246,6 +250,45 @@ export const fixMissingNewsImages = createServerFn({ method: "POST" })
       } catch { /* skip */ }
     }
     return { fixed };
+  });
+
+// ── Entries Admin (bypassa requireAdminMiddleware) ──
+
+export const getAllEntriesAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  const { url, key } = await getServiceRoleClient();
+  if (!url || !key) return [];
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/promotion_entries?select=*,promotions(title)&order=created_at.desc`,
+      { headers: { Authorization: `Bearer ${key}`, apikey: key, "Content-Type": "application/json" } },
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch { /* cai no fallback */ }
+  return [];
+});
+
+export const getAllEntriesAdminFiltered = createServerFn({ method: "POST" })
+  .inputValidator((input: { promotion_id?: string }) => input)
+  .handler(async ({ data }) => {
+    const { url, key } = await getServiceRoleClient();
+    if (!url || !key) return [];
+    const filter = data.promotion_id
+      ? `&promotion_id=eq.${encodeURIComponent(data.promotion_id)}`
+      : "";
+    try {
+      const res = await fetch(
+        `${url}/rest/v1/promotion_entries?select=*,promotions(title)&order=created_at.desc${filter}`,
+        { headers: { Authorization: `Bearer ${key}`, apikey: key, "Content-Type": "application/json" } },
+      );
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows)) return rows;
+      }
+    } catch { /* fallback */ }
+    return [];
   });
 
 // ── Site Settings (Public) ──

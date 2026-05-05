@@ -9,9 +9,11 @@ const maskCpf = (v: string) => v.replace(/\D/g, "").slice(0, 11)
   .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 const maskPhone = (v: string) => v.replace(/\D/g, "").slice(0, 11)
   .replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
+const maskCep = (v: string) => v.replace(/\D/g, "").slice(0, 8)
+  .replace(/(\d{5})(\d)/, "$1-$2");
 
 export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promotionId: string; onClose: () => void; onSuccess: () => void }) {
-  const [form, setForm] = useState({ full_name: "", birth_date: "", whatsapp: "", cpf: "", instagram: "", facebook: "" });
+  const [form, setForm] = useState({ full_name: "", birth_date: "", whatsapp: "", cpf: "", instagram: "", facebook: "", cep: "" });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
@@ -202,6 +204,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               <input required placeholder="WhatsApp * (com DDD)" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: maskPhone(e.target.value) })} className="entry-input" />
               <input required placeholder="CPF *" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: maskCpf(e.target.value) })} className="entry-input" />
               <input required placeholder="@usuário do Instagram *" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} className="entry-input" />
+              <input required placeholder="CEP * (somente números)" value={form.cep} onChange={(e) => setForm({ ...form, cep: maskCep(e.target.value) })} className="entry-input" maxLength={9} />
 
               <label className="promo-form-lgpd">
                 <input

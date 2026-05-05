@@ -61,6 +61,7 @@ export type EntryRow = {
   cpf: string;
   instagram: string;
   facebook: string;
+  cep?: string | null;
   created_at: string;
   promotions?: { title: string } | null;
 };
