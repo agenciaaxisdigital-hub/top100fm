@@ -15,6 +15,18 @@ export const getActivePromotions = createServerFn({ method: "GET" }).handler(asy
   return data || [];
 });
 
+// Lê todas as promoções (sem filtro is_active) — usado pelo painel admin
+export const getAllPromotionsAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = await getPublicSupabase();
+  const { data, error } = await supabase
+    .from("promotions")
+    .select("*")
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data || [];
+});
+
 export const getPublishedNews = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = await getPublicSupabase();
   const { data } = await (supabase as any)
