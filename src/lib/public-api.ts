@@ -252,6 +252,33 @@ export const fixMissingNewsImages = createServerFn({ method: "POST" })
     return { fixed };
   });
 
+// ── Programacao Admin (bypassa requireAdminMiddleware) ──
+
+export const getAllProgramacaoForAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  const { url, key } = await getServiceRoleClient();
+  if (url && key) {
+    try {
+      const res = await fetch(
+        `${url}/rest/v1/programacao?select=*&order=day_of_week.asc,start_time.asc`,
+        { headers: { Authorization: `Bearer ${key}`, apikey: key, "Content-Type": "application/json" } },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) return data;
+      }
+    } catch { /* fallback */ }
+  }
+  // Fallback: público (só ativos)
+  const supabase = await getPublicSupabase();
+  const { data } = await (supabase as any)
+    .from("programacao")
+    .select("*")
+    .neq("program_name", "__probe__")
+    .order("day_of_week")
+    .order("start_time");
+  return data || [];
+});
+
 // ── Entries Admin (bypassa requireAdminMiddleware) ──
 
 export const getAllEntriesAdmin = createServerFn({ method: "GET" }).handler(async () => {

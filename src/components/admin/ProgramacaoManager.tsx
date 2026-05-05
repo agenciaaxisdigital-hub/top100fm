@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  getProgramacaoAdmin,
   createProgramacao,
   updateProgramacao,
   deleteProgramacao,
 } from "@/lib/admin-api";
+import { getAllProgramacaoForAdmin } from "@/lib/public-api";
 import { ImageUploader } from "./ImageUploader";
 import { CalendarIcon, PencilIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import { DAYS_LABELS, type ProgItem } from "./types";
@@ -32,8 +32,7 @@ export function ProgramacaoManager() {
     setLoadErr(null);
     setLoading(true);
     try {
-      const data = await getProgramacaoAdmin();
-      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
+      const data = await getAllProgramacaoForAdmin();
       setItems(Array.isArray(data) ? (data as ProgItem[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar programação");
