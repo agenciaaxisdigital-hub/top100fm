@@ -45,8 +45,9 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
         setCountdown(c);
         if (c <= 0) {
           clearInterval(timer);
-          window.open(RADIO_INSTAGRAM, "_blank", "noopener,noreferrer");
           onSuccess();
+          // Redireciona após fechar o popup (window.location evita bloqueio de popup mobile)
+          setTimeout(() => { window.location.href = RADIO_INSTAGRAM; }, 80);
         }
       }, 1000);
     } catch (e: any) {
