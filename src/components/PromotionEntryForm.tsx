@@ -172,6 +172,18 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           color: #991b1b;
           font-size: 13px;
           border-radius: 4px;
+          word-break: break-word;
+          white-space: pre-wrap;
+        }
+        .promo-form-card .popup-card {
+          max-height: 95dvh;
+          overflow-y: auto;
+        }
+        @media (max-height: 700px) {
+          .promo-form-body { padding: 14px 20px 16px; }
+          .promo-form-header { padding: 16px 20px 14px; }
+          .promo-form-logo { height: 52px; margin-bottom: 8px; }
+          .promo-form-body form { gap: 7px; }
         }
       `}</style>
 
@@ -221,7 +233,11 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
                 </span>
               </label>
 
-              {err && <div className="promo-form-error">{err}</div>}
+              {err && (
+                <div className="promo-form-error" role="alert">
+                  ⚠ {err}
+                </div>
+              )}
 
               <button type="submit" disabled={loading || !acceptedLgpd} className="promo-form-submit">
                 {loading ? "Enviando..." : "Confirmar Inscrição"}

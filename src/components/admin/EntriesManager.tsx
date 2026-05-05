@@ -162,29 +162,32 @@ export function EntriesManager() {
         {rows.map((r) => {
           const cepClean = r.cep?.replace(/\D/g, "") || "";
           const cepInfo = cepClean ? cepMap[cepClean] : null;
+          const address = cepInfo ? formatAddress(cepInfo) : null;
           return (
-            <article key={r.id} className="admin-list-item">
-              <div className="admin-list-info">
-                <h4>{r.full_name}</h4>
-                <p>WhatsApp: {r.whatsapp} · CPF: {formatCpf(r.cpf)}</p>
-                <p>
-                  Instagram: {r.instagram}
-                  {r.birth_date ? ` · Nascimento: ${formatDate(r.birth_date)}` : ""}
-                </p>
-                {r.cep && (
-                  <p style={{ fontSize: 12 }}>
-                    CEP: {formatCep(r.cep)}
-                    {cepInfo ? ` · ${formatAddress(cepInfo)}` : " · resolvendo..."}
-                  </p>
-                )}
-                <div className="admin-list-tags">
+            <article key={r.id} className="admin-list-item" style={{ alignItems: "flex-start" }}>
+              <div className="admin-list-info" style={{ flex: 1 }}>
+                <h4 style={{ marginBottom: 6 }}>{r.full_name}</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "2px 16px", fontSize: 13, color: "var(--muted-foreground, #666)" }}>
+                  <span><strong>WhatsApp:</strong> {r.whatsapp}</span>
+                  <span><strong>CPF:</strong> {formatCpf(r.cpf)}</span>
+                  <span><strong>Instagram:</strong> {r.instagram}</span>
+                  <span><strong>Nascimento:</strong> {r.birth_date ? formatDate(r.birth_date) : "—"}</span>
+                  <span><strong>CEP:</strong> {r.cep ? formatCep(r.cep) : "—"}</span>
+                  {cepClean && (
+                    <span style={{ gridColumn: "1/-1" }}>
+                      <strong>Endereço:</strong>{" "}
+                      {address || (cepMap[cepClean] === null ? "CEP não encontrado" : "carregando...")}
+                    </span>
+                  )}
+                </div>
+                <div className="admin-list-tags" style={{ marginTop: 8 }}>
                   <span className="admin-tag">{r.promotions?.title || "—"}</span>
                   <span className="admin-tag tag-muted">
                     {new Date(r.created_at).toLocaleString("pt-BR")}
                   </span>
                 </div>
               </div>
-              <div className="admin-list-actions">
+              <div className="admin-list-actions" style={{ paddingTop: 4 }}>
                 <button className="danger" onClick={() => remove(r.id)} title="Excluir">
                   <TrashIcon />
                 </button>
