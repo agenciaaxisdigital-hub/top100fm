@@ -36,14 +36,18 @@ function pickTag(item: string, tag: string): string {
 }
 
 function pickImage(item: string): string {
-  const enc = item.match(/<enclosure[^>]*url="([^"]+)"[^>]*type="image/i);
+  // enclosure — handle both attribute orderings (url first OR type first)
+  const enc =
+    item.match(/<enclosure[^>]*url="([^"]+)"[^>]*type="image/i) ||
+    item.match(/<enclosure[^>]*type="image[^"]*"[^>]*url="([^"]+)"/i);
   if (enc) return enc[1];
   const media =
     item.match(/<media:content[^>]*url="([^"]+)"/i) ||
     item.match(/<media:thumbnail[^>]*url="([^"]+)"/i);
   if (media) return media[1];
-  const desc = pickTag(item, "description");
-  const img = desc.match(/<img[^>]*src="([^"]+)"/i);
+  // check content:encoded first (richer), fall back to description
+  const rich = pickTag(item, "content:encoded") || pickTag(item, "description");
+  const img = rich.match(/<img[^>]*src="([^"]+)"/i);
   if (img) return img[1];
   return "";
 }
@@ -51,6 +55,7 @@ function pickImage(item: string): string {
 type ParsedItem = {
   title: string;
   summary: string;
+  contentRich: string;
   link: string;
   image: string;
   source: string;
@@ -71,8 +76,11 @@ function parseFeed(xml: string, source: string): ParsedItem[] {
     const title = stripHtml(pickTag(it, "title"));
     const link = stripHtml(pickTag(it, "link"));
     const summary = stripHtml(pickTag(it, "description")).slice(0, 280);
+    const contentRich = (
+      stripHtml(pickTag(it, "content:encoded")) || stripHtml(pickTag(it, "description"))
+    ).slice(0, 4000);
     const image = pickImage(it);
-    if (title && link) items.push({ title, summary, link, image, source });
+    if (title && link) items.push({ title, summary, contentRich, link, image, source });
   }
   return items;
 }
@@ -149,7 +157,7 @@ export async function runNewsIngestWithClient(
     const { error } = await adminClient.from("news").insert({
       title: it.title.slice(0, 180),
       summary: it.summary,
-      content: `${it.summary}\n\nFonte: ${it.source}\n${it.link}`,
+      content: `${it.contentRich}\n\nFonte: ${it.source}\n${it.link}`,
       image_url: it.image || null,
       source_url: it.link,
       source_name: it.source,
