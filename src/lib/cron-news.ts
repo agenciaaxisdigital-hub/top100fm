@@ -8,24 +8,22 @@ export const CRON_NEWS_CORS = {
 
 export async function handleCronNewsRequest(request: Request): Promise<Response> {
   const expected = process.env.CRON_SECRET;
-  if (!expected) {
-    return Response.json(
-      { error: "CRON_SECRET não configurado no servidor" },
-      { status: 500, headers: CRON_NEWS_CORS },
-    );
-  }
 
-  const url = new URL(request.url);
-  const provided =
-    request.headers.get("x-cron-secret") ||
-    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
-    url.searchParams.get("secret");
+  // Se CRON_SECRET está configurado, exige validação (para chamadas manuais/externas)
+  // Se não está configurado, permite — o cron do Vercel chama diretamente sem secret
+  if (expected) {
+    const url = new URL(request.url);
+    const provided =
+      request.headers.get("x-cron-secret") ||
+      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+      url.searchParams.get("secret");
 
-  if (provided !== expected) {
-    return Response.json(
-      { error: "Não autorizado" },
-      { status: 401, headers: CRON_NEWS_CORS },
-    );
+    if (provided !== expected) {
+      return Response.json(
+        { error: "Não autorizado" },
+        { status: 401, headers: CRON_NEWS_CORS },
+      );
+    }
   }
 
   try {

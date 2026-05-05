@@ -12,7 +12,7 @@
   "crons": [
     {
       "path": "/api/public/cron/news",
-      "schedule": "0 12 * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
