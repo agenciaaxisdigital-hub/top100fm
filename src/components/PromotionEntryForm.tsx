@@ -16,6 +16,8 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
   const [form, setForm] = useState({ full_name: "", birth_date: "", whatsapp: "", cpf: "", instagram: "", facebook: "", cep: "" });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
@@ -35,8 +37,18 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
     setLoading(true);
     try {
       await submitPromotionEntry({ data: { promotion_id: promotionId, ...form } });
-      window.open(RADIO_INSTAGRAM, "_blank", "noopener,noreferrer");
-      onSuccess();
+      setSuccess(true);
+      setCountdown(3);
+      let c = 3;
+      const timer = setInterval(() => {
+        c -= 1;
+        setCountdown(c);
+        if (c <= 0) {
+          clearInterval(timer);
+          window.open(RADIO_INSTAGRAM, "_blank", "noopener,noreferrer");
+          onSuccess();
+        }
+      }, 1000);
     } catch (e: any) {
       setErr(e?.message || "Erro ao enviar");
     } finally {
@@ -197,6 +209,20 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
             <p>Preencha seus dados e concorra a prêmios</p>
           </div>
 
+          {success ? (
+            <div className="promo-form-body" style={{ textAlign: "center", padding: "40px 28px" }}>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>🎉</div>
+              <h3 style={{ color: "#0a1f44", fontWeight: 800, fontSize: 20, marginBottom: 8 }}>
+                Inscrição confirmada!
+              </h3>
+              <p style={{ color: "#4b5563", fontSize: 14, marginBottom: 20 }}>
+                Você está participando da promoção. Boa sorte!
+              </p>
+              <p style={{ color: "#6b7280", fontSize: 13 }}>
+                Redirecionando para o Instagram da rádio em <strong style={{ color: "#0a1f44" }}>{countdown}s</strong>...
+              </p>
+            </div>
+          ) : (
           <div className="promo-form-body">
             <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <input required placeholder="Nome completo *" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="entry-input" />
@@ -244,6 +270,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               </button>
             </form>
           </div>
+          )}
         </div>
       </div>
 
