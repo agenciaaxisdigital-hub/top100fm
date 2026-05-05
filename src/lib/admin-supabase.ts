@@ -1,14 +1,21 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 import type { Database } from "@/integrations/supabase/types";
-import { resolveRuntimeEnv } from "@/lib/runtime-env";
+
+let adminClient: SupabaseClient<Database> | null = null;
 
 export async function getAdminSupabase() {
-  const url = await resolveRuntimeEnv("MY_SUPABASE_URL", "SUPABASE_URL") ||
-    import.meta.env.VITE_MY_SUPABASE_URL ||
-    import.meta.env.VITE_SUPABASE_URL;
+  if (adminClient) return adminClient;
 
-  const key = await resolveRuntimeEnv("MY_SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY");
+  const url =
+    import.meta.env.VITE_MY_SUPABASE_URL ||
+    import.meta.env.VITE_SUPABASE_URL ||
+    process.env.MY_SUPABASE_URL ||
+    process.env.SUPABASE_URL;
+
+  const key =
+    process.env.MY_SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
     throw new Error(
@@ -16,9 +23,10 @@ export async function getAdminSupabase() {
     );
   }
 
-  return createClient<Database>(url, key, {
+  adminClient = createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  return adminClient;
 }
 
 export async function verifyAdminPassword(password: string, storedHash: string) {
