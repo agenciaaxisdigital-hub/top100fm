@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { submitPromotionEntry } from "@/lib/public-api";
 import { LgpdTermsModal } from "@/components/LgpdTermsModal";
 import logo from "@/assets/top100-logo.png";
@@ -21,33 +21,33 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
+  // Timer de countdown — só ativa após sucesso confirmado
+  useEffect(() => {
+    if (!success) return;
+    let c = 3;
+    setCountdown(3);
+    const tick = setInterval(() => {
+      c -= 1;
+      setCountdown(c);
+      if (c <= 0) {
+        clearInterval(tick);
+        window.location.href = RADIO_INSTAGRAM;
+      }
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [success]);
+
+  const goInstagram = () => { window.location.href = RADIO_INSTAGRAM; };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
-
-    if (!form.birth_date) {
-      setErr("Informe sua data de nascimento.");
-      return;
-    }
-    if (!acceptedLgpd) {
-      setErr("Você precisa aceitar o termo de tratamento de dados (LGPD) para continuar.");
-      return;
-    }
-
+    if (!form.birth_date) { setErr("Informe sua data de nascimento."); return; }
+    if (!acceptedLgpd) { setErr("Você precisa aceitar o termo de tratamento de dados (LGPD) para continuar."); return; }
     setLoading(true);
     try {
       await submitPromotionEntry({ data: { promotion_id: promotionId, ...form } });
       setSuccess(true);
-      setCountdown(3);
-      let c = 3;
-      const t = setInterval(() => {
-        c -= 1;
-        setCountdown(c);
-        if (c <= 0) {
-          clearInterval(t);
-          window.location.href = RADIO_INSTAGRAM;
-        }
-      }, 1000);
     } catch (e: any) {
       setErr(e?.message || "Erro ao enviar");
     } finally {
@@ -222,7 +222,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               </p>
               <a
                 href={RADIO_INSTAGRAM}
-                onClick={onSuccess}
+                onClick={goInstagram}
                 style={{
                   display: "inline-block",
                   background: "linear-gradient(135deg, #0a1f44 0%, #1e3a7a 100%)",
