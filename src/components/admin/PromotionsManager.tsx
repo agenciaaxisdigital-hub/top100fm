@@ -5,6 +5,7 @@ import {
   updatePromotion,
   deletePromotion,
 } from "@/lib/admin-api";
+import { supabase } from "@/integrations/supabase/client";
 import { ImageUploader } from "./ImageUploader";
 import { GiftIcon, PencilIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import type { Promotion } from "./types";
@@ -25,12 +26,18 @@ export function PromotionsManager() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [diagCount, setDiagCount] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoadErr(null);
     setLoading(true);
+    // Diagnóstico: conta registros pelo cliente público para comparar
+    supabase.from("promotions").select("id", { count: "exact", head: true }).then(({ count }) => {
+      setDiagCount(count ?? 0);
+    });
     try {
       const data = await getPromotions();
       if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
@@ -50,6 +57,7 @@ export function PromotionsManager() {
     setForm(EMPTY);
     setEditing(null);
     setShowForm(false);
+    setSaveErr(null);
   };
 
   const save = async () => {
@@ -58,11 +66,14 @@ export function PromotionsManager() {
       return;
     }
     setSaving(true);
+    setSaveErr(null);
     try {
       if (editing) await updatePromotion({ data: { id: editing.id, ...form } });
       else await createPromotion({ data: form });
       reset();
       load();
+    } catch (e: any) {
+      setSaveErr(e?.message || "Erro ao salvar promoção");
     } finally {
       setSaving(false);
     }
@@ -123,6 +134,17 @@ export function PromotionsManager() {
           </button>
         </div>
       </header>
+
+      {diagCount !== null && diagCount > 0 && safePromos.length === 0 && !loading && (
+        <div className="admin-error" style={{ background: "#fff3cd", borderColor: "#ffc107", color: "#856404" }}>
+          <span>
+            ⚠ O banco tem <strong>{diagCount} promoção(ões)</strong>, mas a API admin não conseguiu carregá-las.
+            Isso indica um problema com a chave <code>SUPABASE_SERVICE_ROLE_KEY</code> ou com a sessão admin.
+            Faça <strong>logout e login novamente</strong> e verifique as variáveis de ambiente no Vercel.
+          </span>
+          <button className="admin-btn-secondary" onClick={load}>Tentar novamente</button>
+        </div>
+      )}
 
       {showForm && (
         <div className="admin-form-card">

@@ -2,13 +2,26 @@ import { createAdminServerFn } from "@/lib/admin-serverfn";
 import { getAdminSupabase, hashAdminPassword } from "@/lib/admin-supabase";
 
 export const getPromotions = createAdminServerFn("POST").handler(async () => {
-  const supabase = await getAdminSupabase();
-  const { data, error } = await supabase
+  // Tenta service role (vê tudo, inclusive inativos)
+  try {
+    const supabase = await getAdminSupabase();
+    const { data, error } = await supabase
+      .from("promotions")
+      .select("*")
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (!error && Array.isArray(data)) return data;
+    if (error) console.error("[getPromotions] service role error:", error.message);
+  } catch (e) {
+    console.error("[getPromotions] service role unavailable:", e);
+  }
+  // Fallback: cliente público (SUPABASE_SERVICE_ROLE_KEY ausente/errada no servidor)
+  const { supabase: pub } = await import("@/integrations/supabase/client");
+  const { data } = await pub
     .from("promotions")
     .select("*")
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
   return Array.isArray(data) ? data : [];
 });
 

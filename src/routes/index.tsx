@@ -138,45 +138,7 @@ type Sponsor = {
   is_active?: boolean;
 };
 
-const MOCK_PODCASTS: PodcastItem[] = [
-  {
-    id: "mock-pc-1",
-    title: "TOP100 Entrevista — Bastidores do rádio",
-    description: "Conversa exclusiva com nomes que fazem o rádio acontecer no Brasil.",
-    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    thumbnail_url: null,
-  },
-  {
-    id: "mock-pc-2",
-    title: "Manhã TOP — Resenha da semana",
-    description: "Os melhores momentos do programa matinal em formato podcast.",
-    youtube_url: "https://www.youtube.com/watch?v=9bZkp7q19f0",
-    thumbnail_url: null,
-  },
-  {
-    id: "mock-pc-3",
-    title: "Esporte TOP100 — Análise da rodada",
-    description: "Tudo sobre futebol, com comentários quentes do nosso time.",
-    youtube_url: "https://www.youtube.com/watch?v=kJQP7kiw5Fk",
-    thumbnail_url: null,
-  },
-  {
-    id: "mock-pc-4",
-    title: "TOP Cultura — Cinema e séries",
-    description: "Dicas de filmes, séries e tudo que está bombando nas telas.",
-    youtube_url: "https://www.youtube.com/watch?v=L_jWHffIx5E",
-    thumbnail_url: null,
-  },
-  {
-    id: "mock-pc-5",
-    title: "Papo Reto — Política e cidade",
-    description: "Análises sobre o que acontece em Aparecida e região.",
-    youtube_url: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
-    thumbnail_url: null,
-  },
-];
 
-const svgLogo = (svg: string) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
 const SPONSOR_LOGO_FALLBACKS: Record<string, string> = {
   "axis-digital": axisDigitalLogo,
@@ -192,106 +154,6 @@ const normalizeSponsorLogo = (s: Sponsor): Sponsor => {
   return s;
 };
 
-const MOCK_SPONSORS: Sponsor[] = [
-  {
-    id: "mock-sp-1",
-    name: "Supermercado Boa Compra",
-    logo_url: svgLogo(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100'>
-        <rect width='240' height='100' rx='14' fill='#c8102e'/>
-        <g transform='translate(18,28)'>
-          <path d='M6 8h32l-3 22a4 4 0 0 1-4 3H13a4 4 0 0 1-4-3L6 8z' fill='none' stroke='#fff' stroke-width='3' stroke-linejoin='round'/>
-          <circle cx='15' cy='42' r='3.5' fill='#fff'/>
-          <circle cx='32' cy='42' r='3.5' fill='#fff'/>
-          <path d='M2 2h6l2 6' fill='none' stroke='#fff' stroke-width='3' stroke-linecap='round'/>
-        </g>
-        <text x='70' y='48' font-family='Arial,sans-serif' font-size='22' font-weight='900' fill='#fff'>BOA COMPRA</text>
-        <text x='70' y='70' font-family='Arial,sans-serif' font-size='11' font-weight='700' fill='#ffd6dc' letter-spacing='2'>SUPERMERCADO</text>
-      </svg>`,
-    ),
-    display_order: 1,
-    is_active: true,
-  },
-  {
-    id: "mock-sp-2",
-    name: "Auto Posto Estrada",
-    logo_url: svgLogo(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100'>
-        <rect width='240' height='100' rx='14' fill='#0c2651'/>
-        <g transform='translate(20,26)'>
-          <rect x='2' y='10' width='28' height='38' rx='3' fill='none' stroke='#ffc107' stroke-width='3'/>
-          <rect x='6' y='14' width='20' height='12' fill='#ffc107'/>
-          <path d='M30 22h6v22a4 4 0 0 1-4 4h-2' fill='none' stroke='#ffc107' stroke-width='3' stroke-linecap='round'/>
-          <circle cx='38' cy='20' r='3' fill='#ffc107'/>
-        </g>
-        <text x='75' y='48' font-family='Arial,sans-serif' font-size='22' font-weight='900' fill='#fff'>ESTRADA</text>
-        <text x='75' y='70' font-family='Arial,sans-serif' font-size='11' font-weight='700' fill='#ffc107' letter-spacing='2'>AUTO POSTO</text>
-      </svg>`,
-    ),
-    display_order: 2,
-    is_active: true,
-  },
-  {
-    id: "mock-sp-3",
-    name: "Farmácia Vida",
-    logo_url: svgLogo(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100'>
-        <rect width='240' height='100' rx='14' fill='#16a34a'/>
-        <g transform='translate(28,28)'>
-          <rect x='14' y='2' width='12' height='40' rx='2' fill='#fff'/>
-          <rect x='2' y='14' width='36' height='12' rx='2' fill='#fff'/>
-        </g>
-        <text x='80' y='48' font-family='Arial,sans-serif' font-size='24' font-weight='900' fill='#fff'>VIDA</text>
-        <text x='80' y='70' font-family='Arial,sans-serif' font-size='11' font-weight='700' fill='#bbf7d0' letter-spacing='2'>FARMÁCIA</text>
-      </svg>`,
-    ),
-    display_order: 3,
-    is_active: true,
-  },
-  {
-    id: "mock-sp-4",
-    name: "Construtora Lar Bom",
-    logo_url: svgLogo(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100'>
-        <rect width='240' height='100' rx='14' fill='#f59e0b'/>
-        <g transform='translate(20,24)'>
-          <path d='M4 28 L24 8 L44 28 V50 H4 Z' fill='none' stroke='#fff' stroke-width='3' stroke-linejoin='round'/>
-          <rect x='18' y='34' width='12' height='16' fill='#fff'/>
-          <rect x='10' y='32' width='6' height='6' fill='#fff'/>
-          <rect x='32' y='32' width='6' height='6' fill='#fff'/>
-        </g>
-        <text x='80' y='48' font-family='Arial,sans-serif' font-size='22' font-weight='900' fill='#fff'>LAR BOM</text>
-        <text x='80' y='70' font-family='Arial,sans-serif' font-size='11' font-weight='700' fill='#fff7d6' letter-spacing='2'>CONSTRUTORA</text>
-      </svg>`,
-    ),
-    display_order: 4,
-    is_active: true,
-  },
-];
-
-const MOCK_PROMOS: PromoItem[] = [
-  {
-    id: "mock-1",
-    title: "Ganhe um Smart TV 50''",
-    description: "Cadastre-se e concorra ao grande prêmio do mês. Sorteio ao vivo na TOP100 FM.",
-    image_url: null,
-    link: "/promocoes",
-  },
-  {
-    id: "mock-2",
-    title: "Par de ingressos para o show",
-    description: "Promoção exclusiva para ouvintes. Mostre que você é TOP e leve seu acompanhante.",
-    image_url: null,
-    link: "/promocoes",
-  },
-  {
-    id: "mock-3",
-    title: "Vale-compras de R$ 500",
-    description: "Participe agora e concorra a fazer aquela compra dos sonhos por nossa conta.",
-    image_url: null,
-    link: "/promocoes",
-  },
-];
 const DAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 function fmtDate(d: string | null) {
@@ -364,8 +226,7 @@ function IndexPage() {
         ]);
         setNews((n.data as any) || []);
         setProg((p.data as any) || []);
-        const promoData = ((pr.data as any) || []) as PromoItem[];
-        setPromos(promoData.length > 0 ? promoData : MOCK_PROMOS);
+        setPromos(((pr.data as any) || []) as PromoItem[]);
         try {
           const rows = ((sp as any)?.data || []) as Array<{ setting_key: string; setting_value: any }>;
           const map: Record<string, any> = {};
@@ -385,17 +246,16 @@ function IndexPage() {
             .filter((s) => s.is_active !== false && (s.logo_url || SPONSOR_LOGO_FALLBACKS[s.id]))
             .map(normalizeSponsorLogo)
             .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-          setSponsors(filtered.length > 0 ? filtered : MOCK_SPONSORS);
+          setSponsors(filtered);
           setLiveStream({
             active: map["live_active"] === "true" || map["live_active"] === true,
             url: map["live_url"] || null,
             title: map["live_title"] || null,
           });
         } catch {
-          setSponsors(MOCK_SPONSORS);
+          setSponsors([]);
         }
-        const pcData = ((pc as any)?.data as PodcastItem[]) || [];
-        setPodcasts(pcData.length > 0 ? pcData : MOCK_PODCASTS);
+        setPodcasts(((pc as any)?.data as PodcastItem[]) || []);
       } finally {
         if (!silent) setLoading(false);
       }

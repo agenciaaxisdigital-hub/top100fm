@@ -1,23 +1,14 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 import type { Database } from "@/integrations/supabase/types";
-
-let adminClient: SupabaseClient<Database> | null = null;
+import { resolveRuntimeEnv } from "@/lib/runtime-env";
 
 export async function getAdminSupabase() {
-  if (adminClient) return adminClient;
-
-  // Literal member access so Vite's define can statically replace at build time,
-  // and Node.js process.env provides the value at runtime if not baked in.
-  const url =
+  const url = await resolveRuntimeEnv("MY_SUPABASE_URL", "SUPABASE_URL") ||
     import.meta.env.VITE_MY_SUPABASE_URL ||
-    import.meta.env.VITE_SUPABASE_URL ||
-    process.env.MY_SUPABASE_URL ||
-    process.env.SUPABASE_URL;
+    import.meta.env.VITE_SUPABASE_URL;
 
-  const key =
-    process.env.MY_SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = await resolveRuntimeEnv("MY_SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY");
 
   if (!url || !key) {
     throw new Error(
@@ -25,10 +16,9 @@ export async function getAdminSupabase() {
     );
   }
 
-  adminClient = createClient<Database>(url, key, {
+  return createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  return adminClient;
 }
 
 export async function verifyAdminPassword(password: string, storedHash: string) {

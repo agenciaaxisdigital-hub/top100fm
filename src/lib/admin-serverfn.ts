@@ -1,18 +1,19 @@
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { getRequestHeader, useSession } from "@tanstack/react-start/server";
 import { verifyAdminToken } from "@/lib/admin-token";
+import { resolveRuntimeEnv } from "@/lib/runtime-env";
 
 const ADMIN_COOKIE = "admin_session";
 const ADMIN_HEADER = "x-admin-token";
 const SESSION_DURATION = 60 * 60 * 24;
 
 export async function getAdminSecret() {
-  // Literal member access — Vite's define replaces at build time; Node.js process.env at runtime.
-  const raw =
-    process.env.MY_ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.MY_SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const raw = await resolveRuntimeEnv(
+    "MY_ADMIN_SESSION_SECRET",
+    "ADMIN_SESSION_SECRET",
+    "MY_SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  );
   if (!raw) return undefined;
   return raw.length >= 32 ? raw : (raw + "x".repeat(32)).slice(0, 32);
 }
