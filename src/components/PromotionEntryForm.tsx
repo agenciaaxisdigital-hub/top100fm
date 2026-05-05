@@ -17,6 +17,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
@@ -37,6 +38,16 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
     try {
       await submitPromotionEntry({ data: { promotion_id: promotionId, ...form } });
       setSuccess(true);
+      setCountdown(3);
+      let c = 3;
+      const t = setInterval(() => {
+        c -= 1;
+        setCountdown(c);
+        if (c <= 0) {
+          clearInterval(t);
+          window.location.href = RADIO_INSTAGRAM;
+        }
+      }, 1000);
     } catch (e: any) {
       setErr(e?.message || "Erro ao enviar");
     } finally {
@@ -211,8 +222,6 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               </p>
               <a
                 href={RADIO_INSTAGRAM}
-                target="_blank"
-                rel="noopener noreferrer"
                 onClick={onSuccess}
                 style={{
                   display: "inline-block",
@@ -229,6 +238,9 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               >
                 Seguir no Instagram →
               </a>
+              <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 14 }}>
+                Redirecionando em <strong style={{ color: "#0a1f44" }}>{countdown}s</strong>...
+              </p>
             </div>
           ) : (
           <div className="promo-form-body">
