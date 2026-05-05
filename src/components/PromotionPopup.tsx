@@ -17,7 +17,6 @@ export function PromotionPopup() {
   useEffect(() => {
     const dismissed = sessionStorage.getItem("promo_dismissed");
     if (dismissed) return;
-
     getActivePromotions().then((data) => {
       const popups = (data as Promotion[]).filter((p) => p.show_as_popup);
       if (popups.length > 0) {
@@ -39,9 +38,7 @@ export function PromotionPopup() {
 
   useEffect(() => {
     if (promo && visible && !participating) {
-      const timer = setTimeout(() => {
-        handleClose();
-      }, promo.popup_duration_seconds * 1000);
+      const timer = setTimeout(() => handleClose(), promo.popup_duration_seconds * 1000);
       return () => clearTimeout(timer);
     }
   }, [promo, visible, participating]);
@@ -79,20 +76,16 @@ export function PromotionPopup() {
           {promo.description && <p>{promo.description}</p>}
         </div>
         <div className="popup-footer">
-            <button
-              onClick={() => setParticipating(true)}
-              className="popup-btn-primary"
-            >
-              Participar agora
-              <span className="popup-btn-arrow">→</span>
-            </button>
-            {promo.link && (
-              <a href={promo.link} target="_blank" rel="noopener noreferrer" className="popup-btn-secondary">
-                Saiba mais
-              </a>
-            )}
-          </div>
-        )}
+          <button onClick={() => setParticipating(true)} className="popup-btn-primary">
+            Participar agora
+            <span className="popup-btn-arrow">→</span>
+          </button>
+          {promo.link && (
+            <a href={promo.link} target="_blank" rel="noopener noreferrer" className="popup-btn-secondary">
+              Saiba mais
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
