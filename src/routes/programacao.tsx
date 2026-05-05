@@ -33,12 +33,12 @@ function ProgramacaoPage() {
   const items = (Route.useLoaderData() as ProgramacaoItem[]).filter(
     (p) => p.program_name !== "__probe__"
   );
-  // Inicia com valores estáveis no SSR para evitar mismatch de hidratação;
-  // os valores reais (dia/hora atuais) são definidos apenas no cliente.
+
   const [day, setDay] = useState<number>(0);
   const [now, setNow] = useState<string>("");
   const [today, setToday] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const initialDay = new Date().getDay();
@@ -50,6 +50,9 @@ function ProgramacaoPage() {
     return () => clearInterval(t);
   }, []);
 
+  // Recolhe card expandido ao trocar de dia
+  useEffect(() => { setExpandedId(null); }, [day]);
+
   const dayItems = useMemo(
     () => items.filter((p) => p.day_of_week === day).sort((a, b) => a.start_time.localeCompare(b.start_time)),
     [items, day]
@@ -60,18 +63,14 @@ function ProgramacaoPage() {
     return dayItems.findIndex((p) => now >= fmt(p.start_time) && now < fmt(p.end_time));
   }, [dayItems, day, today, now]);
 
-  const totalPrograms = dayItems.length;
-
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      {/* HERO — moderno, com glow e grid sutil */}
+      {/* HERO */}
       <section className="relative overflow-hidden bg-[#0a1f44] text-white">
-        {/* glow radial */}
         <div className="pointer-events-none absolute -top-40 -right-32 h-[420px] w-[420px] rounded-full bg-[#c8102e]/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-20 h-[360px] w-[360px] rounded-full bg-[#1a3a7a]/60 blur-3xl" />
-        {/* grid pattern */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -99,10 +98,9 @@ function ProgramacaoPage() {
             </span>
           </h1>
           <p className="mt-4 text-white/70 max-w-xl text-sm md:text-base leading-relaxed">
-            Acompanhe os programas da TOP100 FM ao longo da semana. Toque em um dia para ver a grade completa em tempo real.
+            Toque em um programa para ver o flyer completo.
           </p>
 
-          {/* mini stats */}
           <div className="mt-8 flex flex-wrap gap-2 md:gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3.5 py-1.5 text-xs">
               <span className="text-white/50">Hoje</span>
@@ -114,14 +112,14 @@ function ProgramacaoPage() {
             </div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3.5 py-1.5 text-xs">
               <span className="text-white/50">Programas</span>
-              <span className="font-bold">{totalPrograms}</span>
+              <span className="font-bold">{dayItems.length}</span>
             </div>
           </div>
         </div>
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        {/* TABS DE DIAS — pílulas modernas, scroll horizontal mobile */}
+        {/* ABAS DE DIAS */}
         <div className="mb-10 -mx-4 px-4 md:mx-0 md:px-0">
           <div className="flex gap-2 md:gap-2.5 overflow-x-auto overflow-y-visible pt-3 pb-3 md:flex-wrap md:justify-center scrollbar-thin">
             {DAYS.map((d) => {
@@ -154,7 +152,7 @@ function ProgramacaoPage() {
           </div>
         </div>
 
-        {/* LISTA DE PROGRAMAS — timeline */}
+        {/* GRADE */}
         {dayItems.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white p-10 md:p-16 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0a1f44] to-[#1a3a7a] text-white text-2xl">
@@ -164,37 +162,43 @@ function ProgramacaoPage() {
               Sem programas para {DAYS[day].label.toLowerCase()}
             </p>
             <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-              A grade está sendo atualizada. Volte em breve para conferir as novidades.
+              A grade está sendo atualizada. Volte em breve.
             </p>
           </div>
         ) : (
           <div className="relative">
-            {/* linha vertical timeline (desktop) */}
-            <div className="hidden md:block absolute left-[88px] top-2 bottom-2 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent" />
+            {/* linha timeline desktop */}
+            <div className="hidden md:block absolute left-[100px] top-2 bottom-2 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent" />
 
             <ul className="space-y-2.5 md:space-y-3">
               {dayItems.map((p, i) => {
                 const isLive = i === liveNowIdx;
-                const isPast =
-                  day === today && now >= fmt(p.end_time) && !isLive;
+                const isPast = day === today && now >= fmt(p.end_time) && !isLive;
+                const hasFlyer = !!p.flyer_url;
+                const isExpanded = expandedId === p.id;
 
                 return (
-                  <li key={p.id} className="relative">
+                  <li key={p.id}>
                     <article
+                      onClick={() => hasFlyer && setExpandedId(isExpanded ? null : p.id)}
                       className={`group relative overflow-hidden rounded-2xl border bg-white transition-all duration-300 ${
+                        hasFlyer ? "cursor-pointer" : ""
+                      } ${
                         isLive
                           ? "border-[#c8102e]/60 shadow-[0_12px_32px_-12px_rgba(200,16,46,0.35)] ring-1 ring-[#c8102e]/20"
+                          : isExpanded
+                          ? "border-[#0a1f44]/40 shadow-xl"
                           : "border-gray-200/80 hover:border-[#0a1f44]/30 hover:shadow-lg hover:-translate-y-0.5"
-                      } ${isPast ? "opacity-55" : ""}`}
+                      } ${isPast && !isExpanded ? "opacity-55" : ""}`}
                     >
-                      {/* glow no card live */}
                       {isLive && (
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#c8102e]/[0.04] via-transparent to-transparent" />
                       )}
 
+                      {/* LINHA PRINCIPAL */}
                       <div className="relative flex items-stretch">
-                        {/* Coluna horário */}
-                        <div className="flex flex-col items-center justify-center px-4 md:px-5 py-4 md:py-5 min-w-[88px] md:min-w-[112px] border-r border-gray-100">
+                        {/* Horário */}
+                        <div className="flex flex-col items-center justify-center px-3 md:px-5 py-4 md:py-5 min-w-[80px] md:min-w-[112px] border-r border-gray-100 flex-shrink-0">
                           <div
                             className={`text-xl md:text-2xl font-black leading-none font-mono tabular-nums ${
                               isLive ? "text-[#c8102e]" : "text-[#0a1f44]"
@@ -203,19 +207,15 @@ function ProgramacaoPage() {
                             {fmt(p.start_time)}
                           </div>
                           <div className="text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground mt-1.5 font-semibold">
-                            às {fmt(p.end_time)}
+                            até {fmt(p.end_time)}
                           </div>
                         </div>
 
-                        {/* Bolinha timeline (desktop) */}
-                        <div className="hidden md:flex absolute left-[88px] top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                        {/* Bolinha timeline desktop */}
+                        <div className="hidden md:flex absolute left-[100px] top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                           <span
                             className={`h-2.5 w-2.5 rounded-full ring-4 ring-white ${
-                              isLive
-                                ? "bg-[#c8102e] animate-pulse"
-                                : isPast
-                                ? "bg-gray-300"
-                                : "bg-[#0a1f44]"
+                              isLive ? "bg-[#c8102e] animate-pulse" : isPast ? "bg-gray-300" : "bg-[#0a1f44]"
                             }`}
                           />
                         </div>
@@ -236,7 +236,7 @@ function ProgramacaoPage() {
                                 No ar
                               </span>
                             )}
-                            {isPast && (
+                            {isPast && !isExpanded && (
                               <span className="inline-flex items-center text-[9px] md:text-[10px] font-bold uppercase bg-gray-100 text-gray-500 px-2 py-1 rounded-full tracking-wider">
                                 Encerrado
                               </span>
@@ -248,19 +248,39 @@ function ProgramacaoPage() {
                               <span className="font-medium text-foreground/80">{p.presenter}</span>
                             </p>
                           )}
+                          {hasFlyer && (
+                            <p className="mt-1.5 text-[10px] md:text-[11px] text-muted-foreground/70 font-medium">
+                              {isExpanded ? "▲ fechar flyer" : "▼ ver flyer"}
+                            </p>
+                          )}
                         </div>
 
-                        {/* Flyer thumbnail */}
-                        {p.flyer_url && (
-                          <div className="flex-shrink-0 pr-4 py-4 flex items-center">
+                        {/* Miniatura do flyer */}
+                        {hasFlyer && (
+                          <div className="flex-shrink-0 pr-3 md:pr-4 py-3 md:py-4 flex items-center">
                             <img
-                              src={p.flyer_url}
+                              src={p.flyer_url!}
                               alt={`Flyer ${p.program_name}`}
-                              className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-xl border border-gray-100 shadow-sm"
+                              className={`object-cover rounded-xl border border-gray-100 shadow-sm transition-all duration-300 ${
+                                isExpanded
+                                  ? "h-16 w-16 md:h-20 md:w-20 opacity-60 ring-2 ring-[#0a1f44]/20"
+                                  : "h-16 w-16 md:h-20 md:w-20"
+                              }`}
                             />
                           </div>
                         )}
                       </div>
+
+                      {/* FLYER EXPANDIDO */}
+                      {hasFlyer && isExpanded && (
+                        <div className="px-4 pb-5 md:px-6 md:pb-6 border-t border-gray-100 mt-0">
+                          <img
+                            src={p.flyer_url!}
+                            alt={`Flyer ${p.program_name}`}
+                            className="w-full rounded-xl object-contain max-h-[480px] md:max-h-[600px] mt-4 shadow-md"
+                          />
+                        </div>
+                      )}
                     </article>
                   </li>
                 );
@@ -269,7 +289,6 @@ function ProgramacaoPage() {
           </div>
         )}
 
-        {/* CTA voltar home */}
         <div className="mt-12 text-center">
           <Link
             to="/"
