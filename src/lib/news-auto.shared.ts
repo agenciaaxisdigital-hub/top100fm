@@ -27,7 +27,15 @@ function stripCdata(s: string): string {
 }
 
 function stripHtml(s: string): string {
-  return decodeEntities(stripCdata(s).replace(/<[^>]+>/g, "")).trim();
+  // Decodifica entidades ANTES de remover tags (RSS pode guardar HTML como &lt;p&gt;)
+  let clean = decodeEntities(stripCdata(s));
+  // Remove scripts/styles completos
+  clean = clean.replace(/<script[\s\S]*?<\/script>/gi, "");
+  clean = clean.replace(/<style[\s\S]*?<\/style>/gi, "");
+  // Remove todas as tags HTML
+  clean = clean.replace(/<[^>]*>/g, " ");
+  // Segunda passagem de decode + normaliza espaços
+  return decodeEntities(clean).replace(/\s+/g, " ").trim();
 }
 
 function pickTag(item: string, tag: string): string {
@@ -36,7 +44,6 @@ function pickTag(item: string, tag: string): string {
 }
 
 function pickImage(item: string): string {
-  // enclosure — handle both attribute orderings (url first OR type first)
   const enc =
     item.match(/<enclosure[^>]*url="([^"]+)"[^>]*type="image/i) ||
     item.match(/<enclosure[^>]*type="image[^"]*"[^>]*url="([^"]+)"/i);
@@ -45,9 +52,10 @@ function pickImage(item: string): string {
     item.match(/<media:content[^>]*url="([^"]+)"/i) ||
     item.match(/<media:thumbnail[^>]*url="([^"]+)"/i);
   if (media) return media[1];
-  // check content:encoded first (richer), fall back to description
-  const rich = pickTag(item, "content:encoded") || pickTag(item, "description");
-  const img = rich.match(/<img[^>]*src="([^"]+)"/i);
+  // Decodifica entidades antes de buscar <img> (RSS pode ter HTML entity-encoded)
+  const raw = pickTag(item, "content:encoded") || pickTag(item, "description");
+  const decoded = decodeEntities(raw);
+  const img = decoded.match(/<img[^>]*src="([^"]+)"/i);
   if (img) return img[1];
   return "";
 }

@@ -158,6 +158,56 @@ export const getActivePodcasts = createServerFn({ method: "GET" }).handler(async
   return (data || []) as PodcastItem[];
 });
 
+// ── Admin reads via REST (bypassa requireAdminMiddleware que falha em produção) ──
+
+async function getServiceRoleClient() {
+  const url =
+    process.env.MY_SUPABASE_URL || process.env.SUPABASE_URL ||
+    import.meta.env.VITE_MY_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+  const key =
+    process.env.MY_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return { url, key };
+}
+
+async function restGet(table: string, query: string): Promise<any[] | null> {
+  const { url, key } = await getServiceRoleClient();
+  if (!url || !key) return null;
+  try {
+    const res = await fetch(`${url}/rest/v1/${table}?${query}`, {
+      headers: { Authorization: `Bearer ${key}`, apikey: key, "Content-Type": "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) ? data : null;
+  } catch { return null; }
+}
+
+export const getAllNewsAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  const rows = await restGet(
+    "news",
+    "select=*&order=is_pinned.desc,pinned_at.desc.nullslast,updated_at.desc",
+  );
+  if (rows) return rows;
+  // Fallback: cliente público (só publicadas)
+  const supabase = await getPublicSupabase();
+  const { data } = await (supabase as any).from("news").select("*")
+    .eq("is_published", true)
+    .order("updated_at", { ascending: false });
+  return data || [];
+});
+
+export const triggerNewsIngestNow = createServerFn({ method: "POST" })
+  .inputValidator((input: { force?: boolean }) => input)
+  .handler(async ({ data }) => {
+    const { url, key } = await getServiceRoleClient();
+    if (!url || !key) throw new Error("Service role key não configurada no servidor");
+    const { createClient } = await import("@supabase/supabase-js");
+    const adminClient = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { runNewsIngestWithClient } = await import("./news-auto.shared");
+    const result = await runNewsIngestWithClient(adminClient, { force: data.force });
+    return result ?? { inserted: 0, skipped: 0, total: 0 };
+  });
+
 // ── Site Settings (Public) ──
 
 export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(async () => {

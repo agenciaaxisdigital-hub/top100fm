@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  getNews,
   createNews,
   updateNews,
   deleteNews,
   getSiteSettings,
   updateSiteSettings,
-  triggerAutoNewsManual,
-  triggerAutoNewsForce,
 } from "@/lib/admin-api";
+import { getAllNewsAdmin, triggerNewsIngestNow } from "@/lib/public-api";
 import { ImageUploader } from "./ImageUploader";
 import { NewsIcon, PencilIcon, PinIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import type { NewsItem } from "./types";
@@ -40,8 +38,7 @@ export function NewsManager() {
     setLoadErr(null);
     setLoading(true);
     try {
-      const [data, settings] = await Promise.all([getNews(), getSiteSettings()]);
-      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
+      const [data, settings] = await Promise.all([getAllNewsAdmin(), getSiteSettings()]);
       setNews(Array.isArray(data) ? (data as NewsItem[]) : []);
       setAutoEnabled(settings?.auto_news_enabled === true || settings?.auto_news_enabled === "true");
     } catch (e: any) {
@@ -65,7 +62,8 @@ export function NewsManager() {
     setAutoBusy(true);
     setAutoMsg(null);
     try {
-      const r = await triggerAutoNewsManual();
+      const r = await triggerNewsIngestNow({ data: { force: false } });
+      if (!r) { setAutoMsg("Erro: resposta inválida do servidor"); return; }
       setAutoMsg(`✓ ${r.inserted} novas, ${r.skipped} já existentes (de ${r.total} encontradas)`);
       load();
     } catch (e) {
@@ -79,7 +77,8 @@ export function NewsManager() {
     setForceBusy(true);
     setForceMsg(null);
     try {
-      const r = await triggerAutoNewsForce();
+      const r = await triggerNewsIngestNow({ data: { force: true } });
+      if (!r) { setForceMsg("Erro: resposta inválida do servidor"); return; }
       setForceMsg(`⚡ ${r.inserted} novas forçadas, ${r.skipped} já existentes (de ${r.total} encontradas)`);
       load();
     } catch (e) {
