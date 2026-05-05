@@ -41,6 +41,7 @@ export function NewsManager() {
     setLoading(true);
     try {
       const [data, settings] = await Promise.all([getNews(), getSiteSettings()]);
+      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
       setNews(Array.isArray(data) ? (data as NewsItem[]) : []);
       setAutoEnabled(settings?.auto_news_enabled === true || settings?.auto_news_enabled === "true");
     } catch (e: any) {

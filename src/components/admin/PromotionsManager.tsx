@@ -33,6 +33,7 @@ export function PromotionsManager() {
     setLoading(true);
     try {
       const data = await getPromotions();
+      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
       setPromos(Array.isArray(data) ? (data as Promotion[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar promoções");

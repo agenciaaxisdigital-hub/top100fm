@@ -33,6 +33,7 @@ export function ProgramacaoManager() {
     setLoading(true);
     try {
       const data = await getProgramacaoAdmin();
+      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
       setItems(Array.isArray(data) ? (data as ProgItem[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar programação");

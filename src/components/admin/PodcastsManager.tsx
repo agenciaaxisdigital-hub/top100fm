@@ -45,6 +45,7 @@ export function PodcastsManager() {
     setLoading(true);
     try {
       const data = await getPodcastsAdmin();
+      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
       setItems(Array.isArray(data) ? (data as PodcastItemAdmin[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar podcasts");

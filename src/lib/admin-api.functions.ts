@@ -1,8 +1,5 @@
-import { createAdminServerFn, getAdminSecret, adminClientTokenMiddleware } from "@/lib/admin-serverfn";
+import { createAdminServerFn } from "@/lib/admin-serverfn";
 import { getAdminSupabase, hashAdminPassword } from "@/lib/admin-supabase";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
-import { verifyAdminToken } from "@/lib/admin-token";
 
 export const getPromotions = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
@@ -28,7 +25,7 @@ export const createPromotion = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { data: result, error } = await supabase
       .from("promotions")
       .insert({ ...data, is_active: true })
@@ -53,7 +50,7 @@ export const updatePromotion = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { id, ...updates } = data;
     const { data: result, error } = await supabase
       .from("promotions")
@@ -68,7 +65,7 @@ export const updatePromotion = createAdminServerFn("POST")
 export const deletePromotion = createAdminServerFn("POST")
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { error } = await supabase.from("promotions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -98,7 +95,7 @@ export const createNews = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { data: result, error } = await supabase.from("news").insert(data).select().single();
     if (error) throw new Error(error.message);
     return result;
@@ -120,7 +117,7 @@ export const updateNews = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { id, ...updates } = data;
     const { data: result, error } = await (supabase as any)
       .from("news")
@@ -135,7 +132,7 @@ export const updateNews = createAdminServerFn("POST")
 export const deleteNews = createAdminServerFn("POST")
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { error } = await supabase.from("news").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -143,11 +140,12 @@ export const deleteNews = createAdminServerFn("POST")
 
 export const getProgramacaoAdmin = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
-  const { data } = await (supabase as any)
+  const { data, error } = await (supabase as any)
     .from("programacao")
     .select("*")
     .order("day_of_week")
     .order("start_time");
+  if (error) throw new Error(error.message);
   return data || [];
 });
 
@@ -164,7 +162,7 @@ export const createProgramacao = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { data: result, error } = await (supabase as any)
       .from("programacao")
       .insert({ ...data, is_active: true })
@@ -189,7 +187,7 @@ export const updateProgramacao = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { id, ...updates } = data;
     const { data: result, error } = await (supabase as any)
       .from("programacao")
@@ -204,7 +202,7 @@ export const updateProgramacao = createAdminServerFn("POST")
 export const deleteProgramacao = createAdminServerFn("POST")
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { error } = await (supabase as any).from("programacao").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -212,11 +210,12 @@ export const deleteProgramacao = createAdminServerFn("POST")
 
 export const getPodcastsAdmin = createAdminServerFn("POST").handler(async () => {
   const supabase = await getAdminSupabase();
-  const { data } = await (supabase as any)
+  const { data, error } = await (supabase as any)
     .from("podcasts")
     .select("*")
     .order("display_order")
     .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
   return data || [];
 });
 
@@ -231,7 +230,7 @@ export const createPodcast = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { data: result, error } = await (supabase as any)
       .from("podcasts")
       .insert({ ...data, is_active: true })
@@ -254,7 +253,7 @@ export const updatePodcast = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { id, ...updates } = data;
     const { data: result, error } = await (supabase as any)
       .from("podcasts")
@@ -269,7 +268,7 @@ export const updatePodcast = createAdminServerFn("POST")
 export const deletePodcast = createAdminServerFn("POST")
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { error } = await (supabase as any).from("podcasts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -304,7 +303,7 @@ export const createAdminUser = createAdminServerFn("POST")
 export const getPromotionEntries = createAdminServerFn("POST")
   .inputValidator((input: { promotion_id?: string }) => input)
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     let q = (supabase as any)
       .from("promotion_entries")
       .select("*, promotions(title)")
@@ -318,26 +317,18 @@ export const getPromotionEntries = createAdminServerFn("POST")
 export const deletePromotionEntry = createAdminServerFn("POST")
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
-      const supabase = await getAdminSupabase();
+    const supabase = await getAdminSupabase();
     const { error } = await (supabase as any).from("promotion_entries").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
   });
 
-// getUploadUrl: usa adminClientTokenMiddleware (envia x-admin-token) + auth inline no handler.
-// Nunca lança exceção — sempre retorna objeto com error string ou signedUrl válida.
-// O browser faz o PUT direto ao Supabase (bypass do limite 4.5MB do Vercel).
-export const getUploadUrl = createServerFn({ method: "POST" })
-  .middleware([adminClientTokenMiddleware])
+// browser PUT directly to Supabase Storage (bypass Vercel 4.5MB limit).
+// Never throws — returns error string so client can display it.
+export const getUploadUrl = createAdminServerFn("POST")
   .inputValidator((input: { filename: string; contentType: string }) => input)
   .handler(async ({ data }) => {
     try {
-      const secret = await getAdminSecret();
-      const token = getRequestHeader("x-admin-token");
-      if (!secret || !(await verifyAdminToken(token, secret))) {
-        return { signedUrl: null, publicUrl: null, error: "Sessão expirada — faça logout e login novamente" };
-      }
-
       const supabase = await getAdminSupabase();
       const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `uploads/${Date.now()}-${safeName}`;
@@ -442,4 +433,4 @@ export const updateSiteSettings = createAdminServerFn("POST")
 
     if (error) throw new Error(error.message);
     return { success: true };
-});
+  });
