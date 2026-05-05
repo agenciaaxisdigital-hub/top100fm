@@ -96,6 +96,7 @@ create table if not exists promotion_entries (
   instagram     text not null,
   facebook      text,
   birth_date    date,
+  cep           text,
   created_at    timestamptz default now(),
   -- uma pessoa só pode se inscrever uma vez por promoção
   unique (promotion_id, cpf)

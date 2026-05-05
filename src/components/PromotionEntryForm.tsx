@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { submitPromotionEntry } from "@/lib/public-api";
 import { LgpdTermsModal } from "@/components/LgpdTermsModal";
 import logo from "@/assets/top100-logo.png";
@@ -16,6 +16,28 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
   const [err, setErr] = useState("");
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [cepAddress, setCepAddress] = useState<string | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+
+  useEffect(() => {
+    const digits = form.cep.replace(/\D/g, "");
+    if (digits.length !== 8) { setCepAddress(null); return; }
+    let cancelled = false;
+    setCepLoading(true);
+    setCepAddress(null);
+    fetch(`https://viacep.com.br/ws/${digits}/json/`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.erro) { setCepAddress("CEP não encontrado"); return; }
+        const street = [data.logradouro, data.bairro].filter(Boolean).join(", ");
+        const city = [data.localidade, data.uf].filter(Boolean).join("/");
+        setCepAddress([street, city].filter(Boolean).join(" — "));
+      })
+      .catch(() => { if (!cancelled) setCepAddress(null); })
+      .finally(() => { if (!cancelled) setCepLoading(false); });
+    return () => { cancelled = true; };
+  }, [form.cep]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,7 +227,23 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
               <input required placeholder="WhatsApp * (com DDD)" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: maskPhone(e.target.value) })} className="entry-input" />
               <input required placeholder="CPF *" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: maskCpf(e.target.value) })} className="entry-input" />
               <input required placeholder="@usuário do Instagram *" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} className="entry-input" />
-              <input required placeholder="CEP * (somente números)" value={form.cep} onChange={(e) => setForm({ ...form, cep: maskCep(e.target.value) })} className="entry-input" maxLength={9} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <input required placeholder="CEP * (somente números)" value={form.cep} onChange={(e) => setForm({ ...form, cep: maskCep(e.target.value) })} className="entry-input" maxLength={9} />
+                {cepLoading && (
+                  <span style={{ fontSize: 12, color: "#6b7280", paddingLeft: 4 }}>Buscando endereço...</span>
+                )}
+                {!cepLoading && cepAddress && (
+                  <span style={{
+                    fontSize: 12, paddingLeft: 10, paddingRight: 10, paddingTop: 7, paddingBottom: 7,
+                    borderRadius: 6,
+                    background: cepAddress === "CEP não encontrado" ? "#fef2f2" : "#f0f9f0",
+                    color: cepAddress === "CEP não encontrado" ? "#c0392b" : "#166534",
+                    fontWeight: 500,
+                  }}>
+                    {cepAddress === "CEP não encontrado" ? "⚠ CEP não encontrado" : `📍 ${cepAddress}`}
+                  </span>
+                )}
+              </div>
 
               <label className="promo-form-lgpd">
                 <input
