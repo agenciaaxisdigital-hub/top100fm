@@ -59,18 +59,18 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
     <>
       <style>{`
         .promo-form-card {
-          max-width: 460px !important;
+          max-width: 480px !important;
           padding: 0 !important;
-          overflow: hidden !important;
           border-radius: 14px !important;
           box-shadow: 0 25px 60px -15px rgba(10,31,68,0.45) !important;
         }
         .promo-form-header {
           background: linear-gradient(135deg, #f5a623 0%, #f7b733 50%, #ffcb47 100%);
-          padding: 28px 28px 24px;
+          padding: 24px 28px 20px;
           color: #0a1f44;
           text-align: center;
           position: relative;
+          flex-shrink: 0;
         }
         .promo-form-header::after {
           content: "";
@@ -80,27 +80,32 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           background: linear-gradient(90deg, #0a1f44 0%, #1e3a7a 50%, #0a1f44 100%);
         }
         .promo-form-logo {
-          height: 78px;
+          height: 68px;
           width: auto;
-          margin: 0 auto 14px;
+          margin: 0 auto 10px;
           display: block;
           filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18));
         }
         .promo-form-header h2 {
           margin: 0;
-          font-size: 20px;
+          font-size: 19px;
           font-weight: 700;
           letter-spacing: 0.3px;
         }
         .promo-form-header p {
           margin: 4px 0 0;
-          font-size: 12.5px;
+          font-size: 12px;
           opacity: 0.85;
           font-weight: 400;
         }
         .promo-form-body {
-          padding: 22px 28px 24px;
+          padding: 18px 24px 22px;
           background: #fff;
+          flex: 1 1 auto;
+          overflow-y: auto;
+          min-height: 0;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
         }
         .promo-form-body .entry-input {
           width: 100%;
@@ -110,8 +115,10 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           font-size: 14px;
           color: #1f2937;
           background: #fafbfc;
-          transition: all 0.18s ease;
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
           font-family: inherit;
+          box-sizing: border-box;
+          -webkit-appearance: none;
         }
         .promo-form-body .entry-input:focus {
           outline: none;
@@ -127,15 +134,15 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           padding: 12px 14px;
           background: #f4f6fb;
           border-radius: 8px;
-          margin-top: 6px;
+          margin-top: 4px;
           font-size: 12px;
           color: #4b5563;
           line-height: 1.5;
         }
         .promo-form-lgpd input[type="checkbox"] {
           margin-top: 2px;
-          width: 15px;
-          height: 15px;
+          width: 16px;
+          height: 16px;
           accent-color: #0a1f44;
           cursor: pointer;
           flex-shrink: 0;
@@ -152,7 +159,7 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
         }
         .promo-form-submit {
           width: 100%;
-          padding: 13px;
+          padding: 14px;
           margin-top: 4px;
           background: linear-gradient(135deg, #0a1f44 0%, #1e3a7a 100%);
           color: #fff;
@@ -163,13 +170,15 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           letter-spacing: 0.5px;
           text-transform: uppercase;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
           box-shadow: 0 4px 12px rgba(10,31,68,0.25);
+          -webkit-appearance: none;
         }
         .promo-form-submit:hover:not(:disabled) {
           transform: translateY(-1px);
           box-shadow: 0 6px 18px rgba(10,31,68,0.35);
         }
+        .promo-form-submit:active:not(:disabled) { transform: translateY(1px); }
         .promo-form-submit:disabled {
           opacity: 0.55;
           cursor: not-allowed;
@@ -184,17 +193,28 @@ export function PromotionEntryForm({ promotionId, onClose, onSuccess }: { promot
           font-size: 13px;
           border-radius: 4px;
           word-break: break-word;
-          white-space: pre-wrap;
         }
-        .promo-form-card .popup-card {
-          max-height: 95dvh;
-          overflow-y: auto;
+
+        /* ── Mobile ── */
+        @media (max-width: 640px) {
+          .promo-form-card { border-radius: 12px !important; }
+          .promo-form-header { padding: 14px 18px 12px !important; }
+          .promo-form-logo { height: 46px !important; margin-bottom: 6px !important; }
+          .promo-form-header h2 { font-size: 15px !important; }
+          .promo-form-header p { font-size: 11px !important; }
+          .promo-form-body { padding: 12px 14px 16px !important; }
+          .promo-form-body form { gap: 8px !important; }
+          .promo-form-body .entry-input { font-size: 16px !important; padding: 10px 12px !important; }
+          .promo-form-submit { font-size: 13px !important; padding: 13px !important; }
         }
-        @media (max-height: 700px) {
-          .promo-form-body { padding: 14px 20px 16px; }
-          .promo-form-header { padding: 16px 20px 14px; }
-          .promo-form-logo { height: 52px; margin-bottom: 8px; }
-          .promo-form-body form { gap: 7px; }
+
+        /* ── Landscape / telas muito baixas ── */
+        @media (max-height: 580px) {
+          .promo-form-header { padding: 8px 18px !important; }
+          .promo-form-logo { height: 32px !important; margin-bottom: 4px !important; }
+          .promo-form-header p { display: none; }
+          .promo-form-body { padding: 8px 14px 12px !important; }
+          .promo-form-body form { gap: 6px !important; }
         }
       `}</style>
 
