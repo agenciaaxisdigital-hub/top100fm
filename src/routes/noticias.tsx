@@ -100,6 +100,9 @@ function NoticiasPage() {
   const fmtDate = (d: string | null) =>
     new Date(d || Date.now()).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
+  const cleanText = (s: string | null | undefined) =>
+    s ? s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() : "";
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -160,7 +163,7 @@ function NoticiasPage() {
                   </h2>
                   {(n.summary || n.content) && (
                     <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
-                      {n.summary || n.content?.slice(0, 140)}
+                      {cleanText(n.summary || n.content?.slice(0, 200))}
                     </p>
                   )}
                   {n.podcast_link && (
@@ -201,11 +204,11 @@ function NoticiasPage() {
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-black text-[#0c2651] mb-4">{open.title}</h2>
                   {open.summary && (
-                    <p className="text-base font-medium text-foreground/90 mb-4">{open.summary}</p>
+                    <p className="text-base font-medium text-foreground/90 mb-4">{cleanText(open.summary)}</p>
                   )}
                   {open.content && (
                     <div className="text-base text-foreground/80 whitespace-pre-line leading-relaxed">
-                      {open.content}
+                      {cleanText(open.content)}
                     </div>
                   )}
                   {open.podcast_link && (

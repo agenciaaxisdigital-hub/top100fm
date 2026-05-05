@@ -162,6 +162,11 @@ function fmtDate(d: string | null) {
   });
 }
 
+function cleanText(s: string | null | undefined): string {
+  if (!s) return "";
+  return s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function fmtTime(t: string) {
   return t?.slice(0, 5) || "";
 }
@@ -509,7 +514,7 @@ function IndexPage() {
                   </h3>
                   {featured.summary && (
                     <p className="mt-2 text-white/90 text-sm md:text-base line-clamp-2">
-                      {featured.summary}
+                      {cleanText(featured.summary)}
                     </p>
                   )}
                   <p className="mt-2 text-xs text-white/70 uppercase tracking-wider">
@@ -617,11 +622,11 @@ function IndexPage() {
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-black text-[#0c2651] mb-4">{openNews.title}</h2>
                   {openNews.summary && (
-                    <p className="text-base font-medium text-foreground/90 mb-4">{openNews.summary}</p>
+                    <p className="text-base font-medium text-foreground/90 mb-4">{cleanText(openNews.summary)}</p>
                   )}
                   {openNews.content && (
                     <div className="text-base text-foreground/80 whitespace-pre-line leading-relaxed">
-                      {openNews.content}
+                      {cleanText(openNews.content)}
                     </div>
                   )}
                 </div>
