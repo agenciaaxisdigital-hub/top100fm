@@ -13,7 +13,6 @@ export function PromotionPopup() {
   const [promo, setPromo] = useState<Promotion | null>(null);
   const [visible, setVisible] = useState(false);
   const [participating, setParticipating] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const dismissed = sessionStorage.getItem("promo_dismissed");
@@ -59,10 +58,7 @@ export function PromotionPopup() {
       <PromotionEntryForm
         promotionId={promo.id}
         onClose={() => setParticipating(false)}
-        onSuccess={() => {
-          setParticipating(false);
-          setSuccess(true);
-        }}
+        onSuccess={handleClose}
       />
     );
   }
@@ -81,18 +77,8 @@ export function PromotionPopup() {
           {!promo.image_url && <span className="popup-badge popup-badge-inline">🎁 Promoção Top 100 FM</span>}
           <h2>{promo.title}</h2>
           {promo.description && <p>{promo.description}</p>}
-          {success && (
-            <div className="popup-success">
-              <span className="popup-success-icon">✓</span>
-              <div>
-                <strong>Inscrição confirmada!</strong>
-                <span>Boa sorte 🍀</span>
-              </div>
-            </div>
-          )}
         </div>
-        {!success && (
-          <div className="popup-footer">
+        <div className="popup-footer">
             <button
               onClick={() => setParticipating(true)}
               className="popup-btn-primary"
