@@ -9,9 +9,10 @@ export const CRON_NEWS_CORS = {
 export async function handleCronNewsRequest(request: Request): Promise<Response> {
   const expected = process.env.CRON_SECRET;
 
-  // Se CRON_SECRET está configurado, exige validação (para chamadas manuais/externas)
-  // Se não está configurado, permite — o cron do Vercel chama diretamente sem secret
-  if (expected) {
+  // Vercel injeta x-vercel-cron: 1 em chamadas originárias do próprio cron — sempre permitido.
+  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+
+  if (!isVercelCron && expected) {
     const url = new URL(request.url);
     const provided =
       request.headers.get("x-cron-secret") ||

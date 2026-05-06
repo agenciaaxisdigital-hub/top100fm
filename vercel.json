@@ -10,9 +10,8 @@
     { "source": "/(.*)", "destination": "/api/handler" }
   ],
   "crons": [
-    {
-      "path": "/api/public/cron/news",
-      "schedule": "0 9 * * *"
-    }
+    { "path": "/api/public/cron/news", "schedule": "0 9 * * *" },
+    { "path": "/api/public/cron/news", "schedule": "0 13 * * *" },
+    { "path": "/api/public/cron/news", "schedule": "0 19 * * *" }
   ]
 }

@@ -256,7 +256,7 @@ function init(): GlobalRadio | null {
     unlocked = true;
     radio.gestureUnlocked = true;
     el.muted = false;
-    if (radio.wantsToPlay && radio.status !== "playing") {
+    if (radio.wantsToPlay && el.paused) {
       ensureSource(radio, false);
       const playPromise = radio.el.play();
       if (playPromise && typeof playPromise.catch === "function") {

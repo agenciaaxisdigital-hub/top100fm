@@ -97,7 +97,7 @@ function RootShell({ children, settings }: { children: React.ReactNode; settings
         var unlocked = false;
         var unlock = function(){
           if (unlocked) return; unlocked = true;
-          try { a.muted = false; tryPlay(); } catch(e){}
+          try { a.muted = false; if (a.paused) tryPlay(); } catch(e){}
         };
         ['pointerdown','pointermove','mousemove','touchstart','touchmove','keydown','click','wheel','scroll'].forEach(function(ev){
           window.addEventListener(ev, unlock, { passive: true, once: true, capture: true });
