@@ -58,13 +58,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         { name: "twitter:image", content: s.logo_url || "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2e943593-07e2-44ff-ad54-17cd1ea201ff/id-preview-c5cd9ec5--77a47e7d-3898-45c7-a7b6-1b32959d4461.lovable.app-1776448753297.png" },
       ],
       links: [
-        { rel: "icon", href: s.favicon_url || "/favicon.ico" },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
         { rel: "preconnect", href: "https://server29.srvsh.com.br:7618", crossOrigin: "anonymous" },
         { rel: "dns-prefetch", href: "https://server29.srvsh.com.br:7618" },
-        {
-          rel: "stylesheet",
-          href: appCss,
-        },
+        { rel: "stylesheet", href: appCss },
       ],
     };
   },
