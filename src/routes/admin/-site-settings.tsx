@@ -186,8 +186,8 @@ export function SiteSettingsPage() {
           <input
             type="url"
             placeholder="https://www.youtube.com/watch?v=..."
-            value={form.live_youtube_url ?? ""}
-            onChange={(e) => handleChange("live_youtube_url", e.target.value)}
+            value={form.live_url ?? ""}
+            onChange={(e) => handleChange("live_url", e.target.value)}
           />
         </label>
         <label>

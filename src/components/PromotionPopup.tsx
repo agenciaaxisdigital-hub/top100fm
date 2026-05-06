@@ -31,7 +31,7 @@ export function PromotionPopup() {
         setPromo(popups[0]);
         setTimeout(() => setVisible(true), 2000);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
