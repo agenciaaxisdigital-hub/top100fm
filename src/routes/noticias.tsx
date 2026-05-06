@@ -104,13 +104,32 @@ function NoticiasPage() {
     s ? s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() : "";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f4f6fb]">
       <SiteHeader />
+
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-[#0a1f44] text-white">
+        <div className="pointer-events-none absolute -top-40 -right-32 h-[420px] w-[420px] rounded-full bg-[#c8102e]/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-20 h-[360px] w-[360px] rounded-full bg-[#1a3a7a]/50 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
+        <div className="relative mx-auto max-w-6xl px-4 py-12 md:py-20">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-3 py-1.5 mb-5">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/80">Sempre atualizado</span>
+          </div>
+          <h1 className="font-display text-7xl sm:text-8xl md:text-[110px] text-white">
+            Notícias
+          </h1>
+          <p className="mt-3 text-white/60 max-w-lg text-sm md:text-base">
+            Tudo que acontece em Aparecida de Goiânia e no Brasil, na voz da TOP100 FM.
+          </p>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3.5 py-1.5 text-xs">
+            <span className="text-white/50">Publicadas</span>
+            <span className="font-bold text-white">{news.length}</span>
+          </div>
+        </div>
+      </section>
+
       <main className="mx-auto max-w-6xl px-4 py-10">
-        <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-[#0c2651]">Notícias</h1>
-          <p className="text-muted-foreground mt-1">Tudo o que está rolando na TOP100 FM.</p>
-        </header>
 
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,7 +156,7 @@ function NoticiasPage() {
               <article
                 key={n.id}
                 onClick={() => setOpen(n)}
-                className="group cursor-pointer rounded-xl border bg-card overflow-hidden transition hover:shadow-lg hover:-translate-y-1"
+                className="group cursor-pointer rounded-2xl bg-white overflow-hidden transition-all duration-300 card-shadow hover:-translate-y-1"
               >
                 {n.image_url ? (
                   <div className="aspect-video overflow-hidden bg-muted">
@@ -146,19 +165,19 @@ function NoticiasPage() {
                       alt={n.title}
                       loading="lazy"
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition group-hover:scale-105"
+                      className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
                     />
                   </div>
                 ) : (
-                  <div className="aspect-video bg-gradient-to-br from-[#c8102e] to-[#0c2651] flex items-center justify-center">
-                    <span className="text-white text-5xl">📻</span>
+                  <div className="aspect-video bg-gradient-to-br from-[#0a1f44] to-[#1a3a7a] flex items-center justify-center">
+                    <span className="text-white/30 text-5xl">📻</span>
                   </div>
                 )}
-                <div className="p-4">
-                  <div className="text-xs uppercase tracking-wider font-bold text-[#c8102e] mb-2">
+                <div className="p-5">
+                  <div className="text-[11px] uppercase tracking-wider font-bold text-[#c8102e] mb-2">
                     {fmtDate(n.updated_at || n.created_at)}
                   </div>
-                  <h2 className="font-bold text-lg text-[#0c2651] leading-snug line-clamp-2">
+                  <h2 className="font-bold text-base md:text-lg text-[#0a1f44] leading-snug line-clamp-2 group-hover:text-[#c8102e] transition-colors">
                     {n.title}
                   </h2>
                   {(n.summary || n.content) && (

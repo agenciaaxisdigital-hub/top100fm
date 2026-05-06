@@ -325,7 +325,7 @@ function IndexPage() {
       <PromotionPopup />
       <AudioActivationOverlay />
 
-      <main className="bg-background">
+      <main className="bg-[#f4f6fb]">
         {/* HERO DE PROMOÇÕES — réplica fiel da produção */}
         <section className="relative overflow-hidden bg-[#0a1f4a]">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,#1a3a8c_0%,#0a1f4a_48%,#06122d_100%)]" />
@@ -541,7 +541,7 @@ function IndexPage() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#c8102e]">
                   Em alta
                 </p>
-                <h2 className="text-2xl md:text-3xl font-black text-[#0c2651] tracking-tight leading-none">
+                <h2 className="font-display text-4xl md:text-5xl text-[#0a1f44]">
                   Últimas Notícias
                 </h2>
               </div>
@@ -747,7 +747,7 @@ function IndexPage() {
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#c8102e]">
                     Hoje · {DAYS[today]}
                   </p>
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-none text-white">
+                  <h2 className="font-display text-4xl md:text-5xl text-white">
                     Programação do Dia
                   </h2>
                 </div>
@@ -820,12 +820,12 @@ function IndexPage() {
             <div className="relative mx-auto max-w-7xl px-4">
               <div className="mb-8 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <span className="h-8 w-1.5 rounded-full bg-[#ffc107]" />
+                  <span className="h-8 w-1.5 rounded-full bg-[#c8102e]" />
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ffc107]">
-                      🎧 No ar quando quiser
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
+                      No ar quando quiser
                     </p>
-                    <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-none text-white">
+                    <h2 className="font-display text-4xl md:text-5xl text-white">
                       Podcasts
                     </h2>
                   </div>
@@ -866,7 +866,7 @@ function IndexPage() {
                     <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#c8102e]">
                       Quem apoia
                     </p>
-                    <h2 className="text-2xl md:text-3xl font-black text-[#0c2651] tracking-tight leading-none mt-0.5">
+                    <h2 className="font-display text-4xl md:text-5xl text-[#0a1f44] mt-0.5">
                       Nossos Patrocinadores
                     </h2>
                   </div>

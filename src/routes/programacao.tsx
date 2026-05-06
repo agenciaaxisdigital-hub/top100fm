@@ -91,11 +91,9 @@ function ProgramacaoPage() {
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight leading-[0.95]">
+          <h1 className="font-display text-7xl sm:text-8xl md:text-[110px] text-white">
             Nossa{" "}
-            <span className="bg-gradient-to-r from-white via-white to-[#ff5470] bg-clip-text text-transparent">
-              Programação
-            </span>
+            <span className="text-[#c8102e]">Programação</span>
           </h1>
           <p className="mt-4 text-white/70 max-w-xl text-sm md:text-base leading-relaxed">
             Toque em um programa para ver o flyer completo.
