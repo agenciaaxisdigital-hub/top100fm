@@ -434,7 +434,7 @@ export const triggerAutoNewsForce = createAdminServerFn("POST").handler(async ()
   }
 });
 
-export const getSiteSettings = createAdminServerFn("POST").handler(async () => {
+export const getSiteSettings = createServerFn({ method: "POST" }).handler(async () => {
   const supabase = await getAdminSupabase();
   const { data, error } = await (supabase as any).from("site_settings").select("*");
   if (error) throw new Error(error.message);

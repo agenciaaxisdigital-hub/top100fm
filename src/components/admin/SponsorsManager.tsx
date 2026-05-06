@@ -3,6 +3,7 @@ import { getSiteSettings, updateSiteSettings } from "@/lib/admin-api";
 import { ImageUploader } from "./ImageUploader";
 import { PencilIcon, PlusIcon, TrashIcon } from "./icons";
 
+
 export type Sponsor = {
   id: string;
   name: string;
@@ -28,6 +29,7 @@ const uid = () =>
 export function SponsorsManager() {
   const [items, setItems] = useState<Sponsor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Sponsor | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -35,11 +37,17 @@ export function SponsorsManager() {
 
   const load = async () => {
     setLoading(true);
-    const settings = await getSiteSettings();
-    const list = Array.isArray(settings?.sponsors) ? (settings.sponsors as Sponsor[]) : [];
-    list.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-    setItems(list);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const settings = await getSiteSettings();
+      const list = Array.isArray(settings?.sponsors) ? (settings.sponsors as Sponsor[]) : [];
+      list.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+      setItems(list);
+    } catch (e: any) {
+      setLoadError(e?.message || "Erro ao carregar patrocinadores");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -103,26 +111,6 @@ export function SponsorsManager() {
 
   const safeItems = Array.isArray(items) ? items : [];
 
-  const seedMocks = async () => {
-    if (
-      !confirm(
-        "Adicionar 4 patrocinadores de demonstração? Você pode excluí-los depois pelo botão da lixeira."
-      )
-    )
-      return;
-    const svgLogo = (label: string, bg: string) =>
-      `data:image/svg+xml;utf8,${encodeURIComponent(
-        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 120'><rect width='300' height='120' rx='12' fill='${bg}'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='28' font-weight='bold' fill='white'>${label}</text></svg>`,
-      )}`;
-    const mocks: Sponsor[] = [
-      { id: uid(), name: "Supermercado Bom Preço", logo_url: svgLogo("BOM PREÇO", "#0c2651"), link: "", display_order: 1, is_active: true },
-      { id: uid(), name: "Auto Posto Avenida", logo_url: svgLogo("POSTO AVENIDA", "#c8102e"), link: "", display_order: 2, is_active: true },
-      { id: uid(), name: "Construtora Horizonte", logo_url: svgLogo("HORIZONTE", "#1a3a7a"), link: "", display_order: 3, is_active: true },
-      { id: uid(), name: "Farmácia Vida", logo_url: svgLogo("FARMÁCIA VIDA", "#16a34a"), link: "", display_order: 4, is_active: true },
-    ];
-    await persist([...safeItems, ...mocks]);
-  };
-
   return (
     <section className="admin-section">
       <header className="admin-section-header">
@@ -131,20 +119,15 @@ export function SponsorsManager() {
             <span style={{ fontSize: 22 }}>🤝</span> Patrocinadores
           </span>
         </h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="admin-btn-secondary" onClick={seedMocks}>
-            ✨ Carregar mocks (demo)
-          </button>
-          <button
-            className="admin-btn-primary"
-            onClick={() => {
-              reset();
-              setShowForm(true);
-            }}
-          >
-            <PlusIcon /> Novo patrocinador
-          </button>
-        </div>
+        <button
+          className="admin-btn-primary"
+          onClick={() => {
+            reset();
+            setShowForm(true);
+          }}
+        >
+          <PlusIcon /> Novo patrocinador
+        </button>
       </header>
 
       <p className="admin-hint" style={{ marginBottom: 16 }}>
@@ -211,6 +194,8 @@ export function SponsorsManager() {
       <div className="admin-list">
         {loading ? (
           <p className="admin-empty">Carregando...</p>
+        ) : loadError ? (
+          <p className="admin-empty" style={{ color: "#c0392b" }}>⚠ {loadError}</p>
         ) : safeItems.length === 0 ? (
           <p className="admin-empty">Nenhum patrocinador cadastrado.</p>
         ) : (
