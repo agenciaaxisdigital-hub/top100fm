@@ -688,30 +688,44 @@ function IndexPage() {
                 Nenhum programa cadastrado para hoje.
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {prog.filter((p) => p.program_name !== "__probe__").map((p) => {
                   const isLive = nowHHMM >= p.start_time.slice(0, 5) && nowHHMM < p.end_time.slice(0, 5);
                   return (
                     <div
                       key={p.id}
-                      className={`rounded-xl p-4 border transition ${
+                      className={`rounded-xl border overflow-hidden transition ${
                         isLive
-                          ? "bg-[#c8102e] border-[#c8102e] shadow-lg shadow-red-900/50"
-                          : "bg-white/5 border-white/10 hover:bg-white/10"
+                          ? "border-[#c8102e] shadow-lg shadow-red-900/50"
+                          : "border-white/10 hover:border-white/25"
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-sm font-bold">
-                          {fmtTime(p.start_time)} – {fmtTime(p.end_time)}
-                        </span>
-                        {isLive && (
-                          <span className="text-[10px] uppercase font-black bg-white text-[#c8102e] px-1.5 py-0.5 rounded animate-pulse">
-                            No ar
+                      {/* Flyer */}
+                      {p.flyer_url && (
+                        <div className="w-full aspect-[16/9] overflow-hidden">
+                          <img
+                            src={p.flyer_url}
+                            alt={`Flyer ${p.program_name}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      {/* Info */}
+                      <div className={`p-3 ${isLive ? "bg-[#c8102e]" : "bg-white/5"}`}>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="font-mono text-xs font-bold opacity-90">
+                            {fmtTime(p.start_time)} – {fmtTime(p.end_time)}
                           </span>
-                        )}
+                          {isLive && (
+                            <span className="text-[9px] uppercase font-black bg-white text-[#c8102e] px-1.5 py-0.5 rounded animate-pulse">
+                              No ar
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-sm leading-tight">{p.program_name}</h4>
+                        {p.presenter && <p className="text-xs text-white/65 mt-0.5">com {p.presenter}</p>}
                       </div>
-                      <h4 className="font-bold leading-tight">{p.program_name}</h4>
-                      {p.presenter && <p className="text-xs text-white/70 mt-1">com {p.presenter}</p>}
                     </div>
                   );
                 })}
