@@ -356,18 +356,57 @@ function IndexPage() {
           />
 
           <div className="relative mx-auto max-w-7xl px-3 sm:px-4 pt-6 pb-8 lg:pt-16 lg:pb-20">
-            {/* Mobile/tablet: bloco da Patrícia */}
+            {/* Mobile/tablet: ao vivo OU Patrícia */}
             <div className="relative mb-5 overflow-hidden rounded-[22px] border border-white/15 bg-gradient-to-br from-[#1a3a8c]/40 to-[#0a1f4a]/60 shadow-[0_25px_60px_-20px_rgba(0,0,0,0.6)] lg:hidden">
-              <img
-                src={mascoteTop}
-                alt="Patrícia nas promoções da TOP100 FM"
-                className="h-[200px] w-full object-cover object-center sm:h-[300px]"
-              />
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/10 to-transparent" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0a1f4a] via-[#0a1f4a]/70 to-transparent" />
-              <div className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[#ffd84d] backdrop-blur-md">
-                Promoções
-              </div>
+              {liveStream.active && liveStream.url ? (
+                /* AO VIVO no mobile */
+                <div className="relative w-full aspect-video bg-black">
+                  {getYoutubeId(liveStream.url) ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYoutubeId(liveStream.url)}?autoplay=1&mute=1&rel=0&modestbranding=1`}
+                      title={liveStream.title || "Transmissão ao vivo"}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <a
+                      href={liveStream.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-full w-full items-center justify-center gap-2 bg-[#0a1f44] text-white font-bold text-sm"
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#c8102e] animate-pulse" />
+                      Assistir ao vivo →
+                    </a>
+                  )}
+                  {/* Badge AO VIVO */}
+                  <div className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c8102e] opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#c8102e]" />
+                    </span>
+                    Ao Vivo
+                  </div>
+                  <p className="absolute bottom-1.5 right-2 text-[9px] text-white/40">
+                    🔇 Toque para ativar som
+                  </p>
+                </div>
+              ) : (
+                /* Foto padrão */
+                <>
+                  <img
+                    src={mascoteTop}
+                    alt="Patrícia nas promoções da TOP100 FM"
+                    className="h-[200px] w-full object-cover object-center sm:h-[300px]"
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/10 to-transparent" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0a1f4a] via-[#0a1f4a]/70 to-transparent" />
+                  <div className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[#ffd84d] backdrop-blur-md">
+                    Promoções
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="grid items-start gap-6 lg:grid-cols-12">
@@ -444,9 +483,9 @@ function IndexPage() {
           </svg>
         </section>
 
-        {/* AO VIVO — logo abaixo do hero, autoplay mudo */}
+        {/* AO VIVO — logo abaixo do hero, autoplay mudo (hidden on mobile — shown in hero card instead) */}
         {liveStream.active && liveStream.url && (
-          <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1f44] via-[#0c2651] to-[#06122d] text-white py-10 md:py-14">
+          <section className="hidden lg:block relative overflow-hidden bg-gradient-to-br from-[#0a1f44] via-[#0c2651] to-[#06122d] text-white py-10 md:py-14">
             <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
             <div className="relative mx-auto max-w-5xl px-4">
               <div className="mb-5 flex items-center gap-3">
