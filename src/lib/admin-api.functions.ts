@@ -1,3 +1,4 @@
+import { createServerFn } from "@tanstack/react-start";
 import { createAdminServerFn } from "@/lib/admin-serverfn";
 import { getAdminSupabase, hashAdminPassword } from "@/lib/admin-supabase";
 
@@ -337,12 +338,22 @@ export const deletePromotionEntry = createAdminServerFn("POST")
   });
 
 // browser PUT directly to Supabase Storage (bypass Vercel 4.5MB limit).
+// Uses service role key directly — bypasses admin session middleware.
 // Never throws — returns error string so client can display it.
-export const getUploadUrl = createAdminServerFn("POST")
+export const getUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((input: { filename: string; contentType: string }) => input)
   .handler(async ({ data }) => {
     try {
-      const supabase = await getAdminSupabase();
+      const url =
+        process.env.MY_SUPABASE_URL || process.env.SUPABASE_URL ||
+        import.meta.env.VITE_MY_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+      const key =
+        process.env.MY_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!url || !key) return { signedUrl: null, publicUrl: null, error: "Service role key não configurada" };
+
+      const { createClient } = await import("@supabase/supabase-js");
+      const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+
       const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `uploads/${Date.now()}-${safeName}`;
       const { data: result, error } = await supabase.storage.from("media").createSignedUploadUrl(path);
