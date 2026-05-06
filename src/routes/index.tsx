@@ -119,6 +119,7 @@ type ProgItem = {
   presenter: string | null;
   start_time: string;
   end_time: string;
+  flyer_url: string | null;
 };
 
 type PromoItem = {
@@ -206,7 +207,7 @@ function IndexPage() {
             .limit(7),
           (supabase as any)
             .from("programacao")
-            .select("id,day_of_week,program_name,presenter,start_time,end_time")
+            .select("id,day_of_week,program_name,presenter,start_time,end_time,flyer_url")
             .eq("is_active", true)
             .eq("day_of_week", today)
             .neq("program_name", "__probe__")
