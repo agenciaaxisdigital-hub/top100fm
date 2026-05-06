@@ -13,7 +13,7 @@ export const setStreamUrl = (url: string) => {
     }
   }
 };
-const INTENT_KEY = "top100_radio_intent";
+const INTENT_KEY = "top100_radio_intent"; // kept only to clear legacy localStorage on init
 
 type PlaybackStatus = "idle" | "connecting" | "playing" | "paused" | "blocked" | "error";
 
@@ -36,23 +36,6 @@ declare global {
 
 const isBrowser = typeof window !== "undefined";
 
-function getIntent(): "playing" | "paused" {
-  if (!isBrowser) return "playing";
-  try {
-    return localStorage.getItem(INTENT_KEY) === "paused" ? "paused" : "playing";
-  } catch {
-    return "playing";
-  }
-}
-
-function setIntent(value: "playing" | "paused") {
-  if (!isBrowser) return;
-  try {
-    localStorage.setItem(INTENT_KEY, value);
-  } catch {
-    /* ignore */
-  }
-}
 
 function emit(radio: GlobalRadio) {
   radio.listeners.forEach((listener) => listener());
@@ -164,6 +147,9 @@ function init(): GlobalRadio | null {
   el.setAttribute("playsinline", "true");
   el.setAttribute("autoplay", "true");
 
+  // Clear legacy localStorage intent so every page load starts fresh
+  try { localStorage.removeItem(INTENT_KEY); } catch { /* ignore */ }
+
   const radio: GlobalRadio = {
     el,
     listeners: new Set(),
@@ -171,7 +157,7 @@ function init(): GlobalRadio | null {
     connectTimer: null,
     status: "idle",
     gestureUnlocked: false,
-    wantsToPlay: getIntent() === "playing",
+    wantsToPlay: true,
     isStarting: false,
   };
 
@@ -301,19 +287,16 @@ function init(): GlobalRadio | null {
       navigator.mediaSession.setActionHandler("play", () => {
         radio.gestureUnlocked = true;
         radio.wantsToPlay = true;
-        setIntent("playing");
         void startPlayback(radio, { forceReload: false, fromGesture: true });
       });
       navigator.mediaSession.setActionHandler("pause", () => {
         radio.wantsToPlay = false;
-        setIntent("paused");
         clearRetry(radio);
         clearConnectTimeout(radio);
         radio.el.pause();
       });
       navigator.mediaSession.setActionHandler("stop", () => {
         radio.wantsToPlay = false;
-        setIntent("paused");
         clearRetry(radio);
         clearConnectTimeout(radio);
         radio.el.pause();
@@ -332,7 +315,6 @@ export const radioAudio = {
     if (!radio) return;
     radio.wantsToPlay = true;
     radio.gestureUnlocked = true;
-    setIntent("playing");
 
     // Se o stream já está pré-carregado e tocando mudo, apenas desmuta no gesto.
     if (!radio.el.paused && radio.el.muted) {
@@ -348,7 +330,6 @@ export const radioAudio = {
     const radio = init();
     if (!radio) return;
     radio.wantsToPlay = false;
-    setIntent("paused");
     clearRetry(radio);
     clearConnectTimeout(radio);
     radio.el.pause();
@@ -397,8 +378,9 @@ export const radioAudio = {
   },
   autoStart: async () => {
     const radio = init();
-    if (!radio || getIntent() !== "playing") return;
+    if (!radio) return;
     radio.wantsToPlay = true;
+    if (radio.status === "playing") return; // already running
     ensureSource(radio, false);
     await startPlayback(radio, { forceReload: false });
   },
