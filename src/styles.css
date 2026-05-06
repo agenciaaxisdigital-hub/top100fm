@@ -487,7 +487,6 @@
     box-shadow: 0 0 10px rgba(255, 23, 68, 0.65);
     transform: scaleY(0.15);
     transform-origin: bottom center;
-    transition: transform 60ms linear;
     will-change: transform;
   }
 

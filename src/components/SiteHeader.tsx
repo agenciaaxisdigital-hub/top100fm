@@ -7,7 +7,8 @@ import { AudioVisualizer } from "@/components/AudioVisualizer";
 
 export function SiteHeader() {
   const { settings } = useLoaderData({ from: "__root__" }) as { settings?: Record<string, any> };
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isActive, setIsActive] = useState(false); // playing or buffering
+  const [isPlaying, setIsPlaying] = useState(false); // strictly playing (for button icon)
   const [volume, setVolume] = useState(1);
 
   useEffect(() => {
@@ -17,26 +18,13 @@ export function SiteHeader() {
     const sync = () => {
       const s = radioAudio.getState();
       setIsPlaying(s.isPlaying);
+      setIsActive(s.isPlaying || s.isBuffering);
       setVolume(s.volume);
     };
     sync();
     const unsub = radioAudio.subscribe(sync);
     radioAudio.autoStart();
-
-    const startOnInteract = () => {
-      radioAudio.play();
-      window.removeEventListener("pointerdown", startOnInteract);
-      window.removeEventListener("keydown", startOnInteract);
-    };
-    if (!radioAudio.getState().isPlaying) {
-      window.addEventListener("pointerdown", startOnInteract, { once: true });
-      window.addEventListener("keydown", startOnInteract, { once: true });
-    }
-    return () => {
-      unsub();
-      window.removeEventListener("pointerdown", startOnInteract);
-      window.removeEventListener("keydown", startOnInteract);
-    };
+    return unsub;
   }, []);
 
   const togglePlay = useCallback(() => radioAudio.toggle(), []);
@@ -85,16 +73,16 @@ export function SiteHeader() {
         </nav>
 
         {/* Player original (right) */}
-        <div className={`header-player ${isPlaying ? "is-playing" : ""}`}>
+        <div className={`header-player ${isActive ? "is-playing" : ""}`}>
           <motion.button
             onClick={togglePlay}
             className="header-play-btn"
-            aria-label={isPlaying ? "Pausar" : "Tocar"}
+            aria-label={isActive ? "Pausar" : "Tocar"}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <AnimatePresence mode="popLayout">
-              {isPlaying ? (
+              {isActive ? (
                 <motion.svg 
                   key="pause"
                   initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
@@ -118,8 +106,8 @@ export function SiteHeader() {
               )}
             </AnimatePresence>
           </motion.button>
-          <span className="viz-desktop"><AudioVisualizer active={isPlaying} bars={6} intensity={volume} /></span>
-          <span className="viz-mobile"><AudioVisualizer active={isPlaying} bars={28} intensity={volume} /></span>
+          <span className="viz-desktop"><AudioVisualizer active={isActive} bars={6} intensity={volume} /></span>
+          <span className="viz-mobile"><AudioVisualizer active={isActive} bars={28} intensity={volume} /></span>
           <input
             type="range"
             min="0"
