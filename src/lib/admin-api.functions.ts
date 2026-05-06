@@ -233,7 +233,18 @@ export const getPodcastsAdmin = createAdminServerFn("POST").handler(async () => 
   return data || [];
 });
 
-export const createPodcast = createAdminServerFn("POST")
+async function getPodcastServiceClient() {
+  const url =
+    process.env.MY_SUPABASE_URL || process.env.SUPABASE_URL ||
+    import.meta.env.VITE_MY_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+  const key =
+    process.env.MY_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("Service role key não configurada no servidor");
+  const { createClient } = await import("@supabase/supabase-js");
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+export const createPodcast = createServerFn({ method: "POST" })
   .inputValidator(
     (input: {
       title: string;
@@ -244,7 +255,7 @@ export const createPodcast = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-    const supabase = await getAdminSupabase();
+    const supabase = await getPodcastServiceClient();
     const { data: result, error } = await (supabase as any)
       .from("podcasts")
       .insert({ ...data, is_active: true })
@@ -254,7 +265,7 @@ export const createPodcast = createAdminServerFn("POST")
     return result;
   });
 
-export const updatePodcast = createAdminServerFn("POST")
+export const updatePodcast = createServerFn({ method: "POST" })
   .inputValidator(
     (input: {
       id: string;
@@ -267,7 +278,7 @@ export const updatePodcast = createAdminServerFn("POST")
     }) => input,
   )
   .handler(async ({ data }) => {
-    const supabase = await getAdminSupabase();
+    const supabase = await getPodcastServiceClient();
     const { id, ...updates } = data;
     const { data: result, error } = await (supabase as any)
       .from("podcasts")
@@ -279,10 +290,10 @@ export const updatePodcast = createAdminServerFn("POST")
     return result;
   });
 
-export const deletePodcast = createAdminServerFn("POST")
+export const deletePodcast = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
-    const supabase = await getAdminSupabase();
+    const supabase = await getPodcastServiceClient();
     const { error } = await (supabase as any).from("podcasts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };

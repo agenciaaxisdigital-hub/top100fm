@@ -7,6 +7,9 @@ import logo from "@/assets/top100-logo.png";
 
 const RADIO_INSTAGRAM = "https://www.instagram.com/top100fmoficial";
 
+// In-memory flag — resets on page reload, persists during SPA navigation
+let _dismissed = false;
+
 type Promotion = {
   id: string; title: string; description: string | null; image_url: string | null;
   link: string | null; popup_duration_seconds: number; show_as_popup: boolean;
@@ -21,8 +24,7 @@ export function PromotionPopup() {
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
-    const dismissed = sessionStorage.getItem("promo_dismissed");
-    if (dismissed) return;
+    if (_dismissed) return;
     getActivePromotions().then((data) => {
       const popups = (data as Promotion[]).filter((p) => p.show_as_popup);
       if (popups.length > 0) {
@@ -34,7 +36,7 @@ export function PromotionPopup() {
 
   useEffect(() => {
     return subscribePublicTables(supabase, ["promotions"], () => {
-      if (sessionStorage.getItem("promo_dismissed")) return;
+      if (_dismissed) return;
       void getActivePromotions().then((data) => {
         const popups = (data as Promotion[]).filter((p) => p.show_as_popup);
         setPromo(popups.length > 0 ? popups[0] : null);
@@ -66,8 +68,8 @@ export function PromotionPopup() {
   }, [view]);
 
   const handleClose = () => {
+    _dismissed = true;
     setVisible(false);
-    sessionStorage.setItem("promo_dismissed", "true");
   };
 
   if (!promo || !visible) return null;

@@ -10,8 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribePublicTables } from "@/lib/supabase-public-refresh";
 import { safeImageUrl } from "@/lib/utils";
 import mascoteTop from "@/assets/mascote-top.png";
-import illustMic from "@/assets/illust-microphone.png";
-import illustDancer from "@/assets/illust-dancer.png";
 import illustGift from "@/assets/illust-promo-gift.png";
 import axisDigitalLogo from "@/assets/axis-digital.png";
 import draFernandaSarelliLogo from "@/assets/dra-fernanda-sarelli.png";
@@ -701,15 +699,7 @@ function IndexPage() {
 
         {/* PROGRAMAÇÃO DO DIA */}
         <section className="relative overflow-hidden bg-gradient-to-br from-[#0c2651] via-[#0c2651] to-[#1a3a7a] text-white py-14">
-          <img
-            src={illustMic}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            width={240}
-            height={240}
-            className="hidden md:block absolute right-6 top-6 h-48 w-48 object-contain opacity-90 anim-float-slow drop-shadow-2xl pointer-events-none"
-          />
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-1/3 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
           <div className="relative mx-auto max-w-7xl px-4">
             <div className="mb-8 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
@@ -787,15 +777,7 @@ function IndexPage() {
         {/* PODCASTS */}
         {true && (
           <section className="relative overflow-hidden bg-gradient-to-br from-[#0c2651] via-[#0c2651] to-[#1a3a7a] text-white py-14">
-            <img
-              src={illustDancer}
-              alt=""
-              aria-hidden="true"
-              loading="lazy"
-              width={240}
-              height={240}
-              className="hidden md:block absolute right-4 top-2 h-56 w-56 object-contain opacity-95 anim-wiggle drop-shadow-2xl pointer-events-none"
-            />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-1/3 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
             <div className="relative mx-auto max-w-7xl px-4">
               <div className="mb-8 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">

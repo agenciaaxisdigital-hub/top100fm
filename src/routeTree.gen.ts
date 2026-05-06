@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PromocoesRouteImport } from './routes/promocoes'
 import { Route as ProgramacaoRouteImport } from './routes/programacao'
+import { Route as PodcastsRouteImport } from './routes/podcasts'
 import { Route as NoticiasRouteImport } from './routes/noticias'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +28,11 @@ const PromocoesRoute = PromocoesRouteImport.update({
 const ProgramacaoRoute = ProgramacaoRouteImport.update({
   id: '/programacao',
   path: '/programacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PodcastsRoute = PodcastsRouteImport.update({
+  id: '/podcasts',
+  path: '/podcasts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoticiasRoute = NoticiasRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contato': typeof ContatoRoute
   '/noticias': typeof NoticiasRoute
+  '/podcasts': typeof PodcastsRoute
   '/programacao': typeof ProgramacaoRoute
   '/promocoes': typeof PromocoesRoute
   '/admin/login': typeof AdminLoginRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contato': typeof ContatoRoute
   '/noticias': typeof NoticiasRoute
+  '/podcasts': typeof PodcastsRoute
   '/programacao': typeof ProgramacaoRoute
   '/promocoes': typeof PromocoesRoute
   '/admin/login': typeof AdminLoginRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/contato': typeof ContatoRoute
   '/noticias': typeof NoticiasRoute
+  '/podcasts': typeof PodcastsRoute
   '/programacao': typeof ProgramacaoRoute
   '/promocoes': typeof PromocoesRoute
   '/admin/login': typeof AdminLoginRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/contato'
     | '/noticias'
+    | '/podcasts'
     | '/programacao'
     | '/promocoes'
     | '/admin/login'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/contato'
     | '/noticias'
+    | '/podcasts'
     | '/programacao'
     | '/promocoes'
     | '/admin/login'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/contato'
     | '/noticias'
+    | '/podcasts'
     | '/programacao'
     | '/promocoes'
     | '/admin/login'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContatoRoute: typeof ContatoRoute
   NoticiasRoute: typeof NoticiasRoute
+  PodcastsRoute: typeof PodcastsRoute
   ProgramacaoRoute: typeof ProgramacaoRoute
   PromocoesRoute: typeof PromocoesRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/programacao'
       fullPath: '/programacao'
       preLoaderRoute: typeof ProgramacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/podcasts': {
+      id: '/podcasts'
+      path: '/podcasts'
+      fullPath: '/podcasts'
+      preLoaderRoute: typeof PodcastsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/noticias': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContatoRoute: ContatoRoute,
   NoticiasRoute: NoticiasRoute,
+  PodcastsRoute: PodcastsRoute,
   ProgramacaoRoute: ProgramacaoRoute,
   PromocoesRoute: PromocoesRoute,
   AdminLoginRoute: AdminLoginRoute,

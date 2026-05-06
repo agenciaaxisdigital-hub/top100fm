@@ -44,10 +44,7 @@ export function AdminSidebar({
     <aside className="admin-sidebar">
       <div className="admin-sidebar-header">
         <img src={topLogo} alt="TOP100 FM" className="admin-sidebar-logo-img" />
-        <div>
-          <h2>TOP100 FM</h2>
-          <span>Painel administrativo</span>
-        </div>
+        <span>Painel administrativo</span>
       </div>
       <nav className="admin-nav">
         {NAV.map((n) => {

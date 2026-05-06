@@ -9,7 +9,6 @@ export function SiteFooter() {
       <div className="site-footer-inner !flex-col md:!flex-row !items-start md:!items-center gap-4">
         
         <div className="flex-1 flex flex-col gap-2">
-          {settings?.radio_name && <h4 className="font-bold text-lg">{settings.radio_name}</h4>}
           {(settings?.contact_phone || settings?.contact_address) && (
             <div className="text-sm opacity-80 flex flex-col gap-1">
               {settings.contact_phone && <span>📞 {settings.contact_phone}</span>}

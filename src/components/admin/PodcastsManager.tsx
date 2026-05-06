@@ -20,6 +20,14 @@ function getYtId(url: string): string | null {
   return m ? m[1] : null;
 }
 
+function cleanYtUrl(url: string): string {
+  const id = getYtId(url);
+  if (!id) return url;
+  // Normalize to canonical watch URL, stripping tracking params (?si=, etc.)
+  if (/youtu\.be\//.test(url)) return `https://youtu.be/${id}`;
+  return `https://www.youtube.com/watch?v=${id}`;
+}
+
 export function PodcastsManager() {
   const [items, setItems] = useState<PodcastItemAdmin[]>([]);
   const [editing, setEditing] = useState<PodcastItemAdmin | null>(null);
@@ -83,7 +91,7 @@ export function PodcastsManager() {
         data: {
           title: live.title || "Transmissão ao vivo",
           description: "",
-          youtube_url: live.url,
+          youtube_url: cleanYtUrl(live.url),
           thumbnail_url: "",
           display_order: 0,
         },
@@ -111,12 +119,16 @@ export function PodcastsManager() {
       alert("Link do YouTube inválido. Use youtube.com/watch?v=… ou youtu.be/…");
       return;
     }
+    const cleanedForm = { ...form, youtube_url: cleanYtUrl(form.youtube_url) };
     setSaving(true);
     try {
-      if (editing) await updatePodcast({ data: { id: editing.id, ...form } });
-      else await createPodcast({ data: { ...form, display_order: 0 } });
+      if (editing) await updatePodcast({ data: { id: editing.id, ...cleanedForm } });
+      else await createPodcast({ data: { ...cleanedForm, display_order: 0 } });
       reset();
       load();
+      alert(editing ? "Podcast atualizado!" : "Podcast criado com sucesso!");
+    } catch (e: any) {
+      alert("Erro ao salvar podcast: " + (e?.message || "tente novamente"));
     } finally {
       setSaving(false);
     }
@@ -234,7 +246,7 @@ export function PodcastsManager() {
               onChange={(e) => setForm({ ...form, youtube_url: e.target.value })}
               placeholder="https://www.youtube.com/watch?v=..."
             />
-            <small className="admin-hint">Aceita youtube.com/watch, youtu.be, shorts e live</small>
+            <small className="admin-hint">Aceita qualquer link do YouTube: vídeo gravado, shorts, live ou youtu.be. Links com parâmetros extras (?si=…) são limpos automaticamente.</small>
           </div>
           <div className="admin-field">
             <label>Capa personalizada (opcional)</label>
