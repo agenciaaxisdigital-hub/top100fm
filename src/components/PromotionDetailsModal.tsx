@@ -119,8 +119,9 @@ export function PromotionDetailsModal({
               )}
               <div className="mt-4 rounded-xl bg-[#fff8f0] border border-[#c8102e]/20 p-3 text-xs text-[#0c2651]">
                 <strong className="text-[#c8102e]">📋 Regras:</strong> Preencha o formulário com
-                seus dados verdadeiros. O sorteio será divulgado no Instagram da rádio. Apenas uma
-                inscrição por CPF.
+                seus dados verdadeiros. Siga o{" "}
+                <a href="https://www.instagram.com/top100fmoficial" target="_blank" rel="noopener noreferrer" className="font-bold underline text-[#c8102e]">@top100fmoficial</a>{" "}
+                no Instagram. O sorteio será divulgado no Instagram da rádio. Apenas uma inscrição por CPF.
               </div>
               <button
                 onClick={() => setStep("form")}
