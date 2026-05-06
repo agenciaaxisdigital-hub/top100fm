@@ -780,8 +780,8 @@ function IndexPage() {
           </section>
         )}
 
-        {/* PODCASTS — mesma estética da Programação */}
-        {podcasts.length > 0 && (
+        {/* PODCASTS */}
+        {true && (
           <section className="relative overflow-hidden bg-gradient-to-br from-[#0c2651] via-[#0c2651] to-[#1a3a7a] text-white py-14">
             <img
               src={illustDancer}
@@ -818,17 +818,14 @@ function IndexPage() {
                 ))}
               </div>
 
-              {podcasts.length > 3 && (
-                <div className="mt-8 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setPodcastModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#ffc107] px-7 py-3 text-sm font-black uppercase tracking-wide text-[#0c2651] shadow-xl hover:scale-105 transition-transform"
-                  >
-                    Ver todos os podcasts ({podcasts.length})
-                  </button>
-                </div>
-              )}
+              <div className="mt-8 flex justify-center">
+                <Link
+                  to="/podcasts"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#ffc107] px-7 py-3 text-sm font-black uppercase tracking-wide text-[#0c2651] shadow-xl hover:scale-105 transition-transform"
+                >
+                  Ver todos os podcasts {podcasts.length > 0 ? `(${podcasts.length})` : ""}
+                </Link>
+              </div>
             </div>
           </section>
         )}
