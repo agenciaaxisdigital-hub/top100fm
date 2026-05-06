@@ -446,6 +446,54 @@ function IndexPage() {
           </svg>
         </section>
 
+        {/* AO VIVO — logo abaixo do hero, autoplay mudo */}
+        {liveStream.active && liveStream.url && (
+          <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1f44] via-[#0c2651] to-[#06122d] text-white py-10 md:py-14">
+            <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
+            <div className="relative mx-auto max-w-5xl px-4">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c8102e] opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-[#c8102e]" />
+                </span>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-[#c8102e]">Ao Vivo</span>
+              </div>
+              {liveStream.title && (
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-4">{liveStream.title}</h2>
+              )}
+              <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+                {(() => {
+                  const ytId = getYoutubeId(liveStream.url);
+                  if (ytId) {
+                    return (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&rel=0&modestbranding=1`}
+                        title={liveStream.title || "Transmissão ao vivo TOP100 FM"}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    );
+                  }
+                  return (
+                    <a
+                      href={liveStream.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-full w-full items-center justify-center gap-3 bg-[#0a1f44] hover:bg-[#1a3a7a] transition text-white font-bold text-lg"
+                    >
+                      <span className="h-3 w-3 rounded-full bg-[#c8102e] animate-pulse" />
+                      Assistir transmissão ao vivo →
+                    </a>
+                  );
+                })()}
+              </div>
+              <p className="mt-3 text-xs text-white/40 text-center">
+                🔇 Iniciando sem som — clique no vídeo para ativar o áudio
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* HERO + NOTÍCIAS DESTAQUE */}
         <section className="mx-auto max-w-7xl px-3 sm:px-4 pt-6 sm:pt-8 pb-10 sm:pb-12">
@@ -735,50 +783,6 @@ function IndexPage() {
           </div>
         </section>
 
-        {/* AO VIVO — banner de transmissão */}
-        {liveStream.active && liveStream.url && (
-          <section className="relative overflow-hidden bg-[#0a0a0a] text-white py-10">
-            <div className="relative mx-auto max-w-5xl px-4">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="relative flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c8102e] opacity-75" />
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-[#c8102e]" />
-                </span>
-                <span className="text-xs font-black uppercase tracking-[0.25em] text-[#c8102e]">Ao Vivo</span>
-              </div>
-              {liveStream.title && (
-                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-4">{liveStream.title}</h2>
-              )}
-              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
-                {(() => {
-                  const ytId = getYoutubeId(liveStream.url);
-                  if (ytId) {
-                    return (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${ytId}?autoplay=0&rel=0&modestbranding=1`}
-                        title={liveStream.title || "Transmissão ao vivo TOP100 FM"}
-                        className="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    );
-                  }
-                  return (
-                    <a
-                      href={liveStream.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex h-full w-full items-center justify-center gap-3 bg-[#111] hover:bg-[#1a1a1a] transition text-white font-bold text-lg"
-                    >
-                      <span className="h-3 w-3 rounded-full bg-[#c8102e] animate-pulse" />
-                      Assistir transmissão ao vivo →
-                    </a>
-                  );
-                })()}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* PODCASTS */}
         {true && (
