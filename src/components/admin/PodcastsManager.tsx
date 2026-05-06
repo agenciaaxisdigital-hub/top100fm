@@ -1,27 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  getPodcastsAdmin,
   createPodcast,
   updatePodcast,
   deletePodcast,
-  getLiveStreamAdmin,
   setLiveStream,
 } from "@/lib/admin-api";
+import { getAllPodcastsForAdmin, getLiveStream } from "@/lib/public-api";
 import { ImageUploader } from "./ImageUploader";
 import { MicIcon, PencilIcon, PlusIcon, PowerIcon, TrashIcon } from "./icons";
 import type { PodcastItemAdmin } from "./types";
 
-const EMPTY = {
-  title: "",
-  description: "",
-  youtube_url: "",
-  thumbnail_url: "",
-  display_order: 0,
-};
+const EMPTY = { title: "", description: "", youtube_url: "", thumbnail_url: "" };
 
 function getYtId(url: string): string | null {
   if (!url) return null;
-  // Suporta watch?v=, youtu.be/, embed/, shorts/, live/ e v/
   const m = url.match(
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
   );
@@ -35,8 +27,9 @@ export function PodcastsManager() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
-  const [live, setLive] = useState({ active: false, url: "", title: "" });
+  const [live, setLiveState] = useState({ active: false, url: "", title: "" });
   const [liveSaving, setLiveSaving] = useState(false);
+  const [liveEnding, setLiveEnding] = useState(false);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -44,8 +37,7 @@ export function PodcastsManager() {
     setLoadErr(null);
     setLoading(true);
     try {
-      const data = await getPodcastsAdmin();
-      if (data == null) { setLoadErr("Sessão expirada — faça logout e login novamente"); return; }
+      const data = await getAllPodcastsForAdmin();
       setItems(Array.isArray(data) ? (data as PodcastItemAdmin[]) : []);
     } catch (e: any) {
       setLoadErr(e?.message || "Erro ao carregar podcasts");
@@ -55,14 +47,13 @@ export function PodcastsManager() {
   }, []);
 
   const loadLive = useCallback(async () => {
-    const data = await getLiveStreamAdmin();
-    if (data) setLive({ active: data.active, url: data.url || "", title: data.title || "" });
+    try {
+      const data = await getLiveStream();
+      if (data) setLiveState({ active: data.active, url: data.url || "", title: data.title || "" });
+    } catch { /* ignore */ }
   }, []);
 
-  useEffect(() => {
-    load();
-    loadLive();
-  }, [load, loadLive]);
+  useEffect(() => { load(); loadLive(); }, [load, loadLive]);
 
   const saveLive = async () => {
     if (live.active && !live.url.trim()) {
@@ -78,11 +69,38 @@ export function PodcastsManager() {
     }
   };
 
-  const reset = () => {
-    setForm(EMPTY);
-    setEditing(null);
-    setShowForm(false);
+  // Encerra ao vivo e salva como podcast
+  const endLiveAndSave = async () => {
+    if (!live.url.trim()) {
+      alert("Não há URL de transmissão para salvar.");
+      return;
+    }
+    if (!confirm("Encerrar a transmissão ao vivo e salvar como podcast?")) return;
+    setLiveEnding(true);
+    try {
+      // 1. Salvar como podcast
+      await createPodcast({
+        data: {
+          title: live.title || "Transmissão ao vivo",
+          description: "",
+          youtube_url: live.url,
+          thumbnail_url: "",
+          display_order: 0,
+        },
+      });
+      // 2. Desativar ao vivo
+      await setLiveStream({ data: { active: false, url: "", title: "" } });
+      setLiveState({ active: false, url: "", title: "" });
+      await load();
+      alert("Transmissão encerrada e salva como podcast!");
+    } catch (e: any) {
+      alert("Erro ao encerrar: " + (e?.message || "tente novamente"));
+    } finally {
+      setLiveEnding(false);
+    }
   };
+
+  const reset = () => { setForm(EMPTY); setEditing(null); setShowForm(false); };
 
   const save = async () => {
     if (!form.title.trim() || !form.youtube_url.trim()) {
@@ -96,7 +114,7 @@ export function PodcastsManager() {
     setSaving(true);
     try {
       if (editing) await updatePodcast({ data: { id: editing.id, ...form } });
-      else await createPodcast({ data: form });
+      else await createPodcast({ data: { ...form, display_order: 0 } });
       reset();
       load();
     } finally {
@@ -105,13 +123,7 @@ export function PodcastsManager() {
   };
 
   const startEdit = (p: PodcastItemAdmin) => {
-    setForm({
-      title: p.title,
-      description: p.description || "",
-      youtube_url: p.youtube_url,
-      thumbnail_url: p.thumbnail_url || "",
-      display_order: p.display_order ?? 0,
-    });
+    setForm({ title: p.title, description: p.description || "", youtube_url: p.youtube_url, thumbnail_url: p.thumbnail_url || "" });
     setEditing(p);
     setShowForm(true);
   };
@@ -132,11 +144,9 @@ export function PodcastsManager() {
   return (
     <section className="admin-section">
       <header className="admin-section-header">
-        <h1>
-          <MicIcon /> <span>Podcasts</span>
-        </h1>
+        <h1><MicIcon /> <span>Podcasts</span></h1>
         <div style={{ display: "flex", gap: "0.5rem" }}>
-          <button className="admin-btn-secondary" onClick={load} disabled={loading} title="Atualizar lista">
+          <button className="admin-btn-secondary" onClick={load} disabled={loading}>
             {loading ? "⟳" : "↻"} Atualizar
           </button>
           <button className="admin-btn-primary" onClick={() => { reset(); setShowForm(true); }}>
@@ -145,6 +155,7 @@ export function PodcastsManager() {
         </div>
       </header>
 
+      {/* AO VIVO */}
       <div className="admin-form-card">
         <h3>🔴 Transmissão ao vivo</h3>
         <div className="admin-field">
@@ -152,7 +163,7 @@ export function PodcastsManager() {
             <input
               type="checkbox"
               checked={live.active}
-              onChange={(e) => setLive({ ...live, active: e.target.checked })}
+              onChange={(e) => setLiveState({ ...live, active: e.target.checked })}
               style={{ width: "1.1rem", height: "1.1rem" }}
             />
             <span>{live.active ? "AO VIVO ativado" : "AO VIVO desativado"}</span>
@@ -162,29 +173,38 @@ export function PodcastsManager() {
           <label>URL da transmissão (YouTube Live, etc.)</label>
           <input
             value={live.url}
-            onChange={(e) => setLive({ ...live, url: e.target.value })}
+            onChange={(e) => setLiveState({ ...live, url: e.target.value })}
             placeholder="https://www.youtube.com/watch?v=..."
           />
-          <small className="admin-hint">
-            Cole o link do YouTube Live ou qualquer URL de stream.
-          </small>
+          <small className="admin-hint">Cole o link do YouTube Live ou qualquer URL de stream.</small>
         </div>
         <div className="admin-field">
           <label>Título da transmissão (opcional)</label>
           <input
             value={live.title}
-            onChange={(e) => setLive({ ...live, title: e.target.value })}
+            onChange={(e) => setLiveState({ ...live, title: e.target.value })}
             placeholder="Ex: Top 100 FM ao vivo agora!"
             maxLength={120}
           />
         </div>
-        <div className="admin-form-actions">
+        <div className="admin-form-actions" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
           <button className="admin-btn-primary" onClick={saveLive} disabled={liveSaving}>
             {liveSaving ? "Salvando..." : "Salvar transmissão"}
           </button>
+          {live.url && (
+            <button
+              className="admin-btn-secondary"
+              onClick={endLiveAndSave}
+              disabled={liveEnding}
+              style={{ borderColor: "#c0392b", color: "#c0392b" }}
+            >
+              {liveEnding ? "Encerrando..." : "⏹ Encerrar e salvar como podcast"}
+            </button>
+          )}
         </div>
       </div>
 
+      {/* FORMULÁRIO NOVO/EDITAR */}
       {showForm && (
         <div className="admin-form-card">
           <h3>{editing ? "Editar podcast" : "Novo podcast"}</h3>
@@ -214,15 +234,11 @@ export function PodcastsManager() {
               onChange={(e) => setForm({ ...form, youtube_url: e.target.value })}
               placeholder="https://www.youtube.com/watch?v=..."
             />
-            <small className="admin-hint">
-              Aceita youtube.com/watch, youtu.be e youtube.com/shorts
-            </small>
+            <small className="admin-hint">Aceita youtube.com/watch, youtu.be, shorts e live</small>
           </div>
           <div className="admin-field">
             <label>Capa personalizada (opcional)</label>
-            {form.thumbnail_url && (
-              <img src={form.thumbnail_url} alt="" className="admin-preview-img" />
-            )}
+            {form.thumbnail_url && <img src={form.thumbnail_url} alt="" className="admin-preview-img" />}
             <ImageUploader onUploaded={(url) => setForm({ ...form, thumbnail_url: url })} />
             <input
               value={form.thumbnail_url}
@@ -230,25 +246,16 @@ export function PodcastsManager() {
               placeholder="ou cole uma URL"
             />
           </div>
-          <div className="admin-field">
-            <label>Ordem de exibição</label>
-            <input
-              type="number"
-              value={form.display_order}
-              onChange={(e) => setForm({ ...form, display_order: Number(e.target.value) })}
-            />
-          </div>
           <div className="admin-form-actions">
             <button className="admin-btn-primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : editing ? "Salvar alterações" : "Criar podcast"}
             </button>
-            <button className="admin-btn-secondary" onClick={reset}>
-              Cancelar
-            </button>
+            <button className="admin-btn-secondary" onClick={reset}>Cancelar</button>
           </div>
         </div>
       )}
 
+      {/* LISTA */}
       <div className="admin-list">
         {loadErr && (
           <div className="admin-error">
@@ -259,13 +266,9 @@ export function PodcastsManager() {
         {!loadErr && safeItems.length === 0 && <p className="admin-empty">Nenhum podcast cadastrado.</p>}
         {safeItems.map((p) => {
           const ytId = getYtId(p.youtube_url);
-          const thumb =
-            p.thumbnail_url || (ytId ? `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg` : "");
+          const thumb = p.thumbnail_url || (ytId ? `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg` : "");
           return (
-            <article
-              key={p.id}
-              className={`admin-list-item ${!p.is_active ? "inactive" : ""}`}
-            >
+            <article key={p.id} className={`admin-list-item ${!p.is_active ? "inactive" : ""}`}>
               {thumb && <img src={thumb} alt="" className="admin-list-thumb" />}
               <div className="admin-list-info">
                 <h4>{p.title}</h4>
@@ -275,15 +278,9 @@ export function PodcastsManager() {
                 </span>
               </div>
               <div className="admin-list-actions">
-                <button onClick={() => toggle(p)} title={p.is_active ? "Desativar" : "Ativar"}>
-                  <PowerIcon />
-                </button>
-                <button onClick={() => startEdit(p)} title="Editar">
-                  <PencilIcon />
-                </button>
-                <button className="danger" onClick={() => remove(p.id)} title="Excluir">
-                  <TrashIcon />
-                </button>
+                <button onClick={() => toggle(p)} title={p.is_active ? "Desativar" : "Ativar"}><PowerIcon /></button>
+                <button onClick={() => startEdit(p)} title="Editar"><PencilIcon /></button>
+                <button className="danger" onClick={() => remove(p.id)} title="Excluir"><TrashIcon /></button>
               </div>
             </article>
           );

@@ -252,6 +252,29 @@ export const fixMissingNewsImages = createServerFn({ method: "POST" })
     return { fixed };
   });
 
+// ── Podcasts Admin (bypassa requireAdminMiddleware) ──
+
+export const getAllPodcastsForAdmin = createServerFn({ method: "GET" }).handler(async () => {
+  const { url, key } = await getServiceRoleClient();
+  if (url && key) {
+    try {
+      const res = await fetch(
+        `${url}/rest/v1/podcasts?select=*&order=display_order.asc,created_at.desc`,
+        { headers: { Authorization: `Bearer ${key}`, apikey: key, "Content-Type": "application/json" } },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) return data;
+      }
+    } catch { /* fallback */ }
+  }
+  const supabase = await getPublicSupabase();
+  const { data } = await (supabase as any)
+    .from("podcasts").select("*").eq("is_active", true)
+    .order("display_order").order("created_at", { ascending: false });
+  return data || [];
+});
+
 // ── Programacao Admin (bypassa requireAdminMiddleware) ──
 
 export const getAllProgramacaoForAdmin = createServerFn({ method: "GET" }).handler(async () => {
