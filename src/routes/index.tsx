@@ -788,7 +788,7 @@ function IndexPage() {
         )}
 
         {/* PROGRAMAÇÃO SEMANAL */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0c2651] via-[#0c2651] to-[#1a3a7a] text-white py-14">
+        <section className="relative overflow-x-hidden bg-gradient-to-br from-[#0c2651] via-[#0c2651] to-[#1a3a7a] text-white py-14">
           <div className="pointer-events-none absolute right-0 top-0 h-full w-1/3 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
           <div className="relative mx-auto max-w-7xl px-4">
             <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
@@ -860,8 +860,8 @@ function IndexPage() {
                       }`}
                     >
                       {p.flyer_url && (
-                        <div className="w-full aspect-[16/9] overflow-hidden">
-                          <img src={p.flyer_url} alt={`Flyer ${p.program_name}`} className="w-full h-full object-cover" />
+                        <div className="w-full aspect-[4/3] bg-black flex items-center justify-center overflow-hidden">
+                          <img src={p.flyer_url} alt={`Flyer ${p.program_name}`} className="w-full h-full object-contain" />
                         </div>
                       )}
                       <div className={`p-3 ${isLive ? "bg-[#c8102e]" : "bg-white/5"}`}>
