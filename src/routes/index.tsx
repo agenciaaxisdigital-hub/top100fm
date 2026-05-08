@@ -791,7 +791,7 @@ function IndexPage() {
             </div>
 
             {/* Abas de dias */}
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-7 scrollbar-thin">
+            <div className="flex gap-2 overflow-x-auto pt-3 pb-3 mb-5 scrollbar-thin">
               {DAYS.map((label, idx) => {
                 const isActive = selectedDay === idx;
                 const isToday = today === idx;
