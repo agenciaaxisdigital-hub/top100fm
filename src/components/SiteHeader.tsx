@@ -68,7 +68,7 @@ export function SiteHeader() {
             <motion.span whileHover={{ y: -2 }}>PROMOÇÃO</motion.span>
           </Link>
           <Link to="/contato" className="header-nav-link" activeProps={{ className: "header-nav-link active" }}>
-            <motion.span whileHover={{ y: -2 }}>CONTATO</motion.span>
+            <motion.span whileHover={{ y: -2 }}>REDES SOCIAIS</motion.span>
           </Link>
         </nav>
 
@@ -135,7 +135,7 @@ export function SiteHeader() {
         <Link to="/noticias" className="header-pill" activeProps={{ className: "header-pill active" }}>Notícias</Link>
         <Link to="/programacao" className="header-pill" activeProps={{ className: "header-pill active" }}>Programação</Link>
         <Link to="/promocoes" className="header-pill" activeProps={{ className: "header-pill active" }}>Promoção</Link>
-        <Link to="/contato" className="header-pill" activeProps={{ className: "header-pill active" }}>Contato</Link>
+        <Link to="/contato" className="header-pill" activeProps={{ className: "header-pill active" }}>Redes Sociais</Link>
       </nav>
     </motion.header>
   );
