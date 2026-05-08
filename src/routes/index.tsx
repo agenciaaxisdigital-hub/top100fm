@@ -860,9 +860,7 @@ function IndexPage() {
                       }`}
                     >
                       {p.flyer_url && (
-                        <div className="w-full aspect-[4/3] bg-black flex items-center justify-center overflow-hidden">
-                          <img src={p.flyer_url} alt={`Flyer ${p.program_name}`} className="w-full h-full object-contain" />
-                        </div>
+                        <img src={p.flyer_url} alt={`Flyer ${p.program_name}`} className="w-full h-auto block" />
                       )}
                       <div className={`p-3 ${isLive ? "bg-[#c8102e]" : "bg-white/5"}`}>
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
