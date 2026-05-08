@@ -188,7 +188,7 @@ export function LgpdTermsModal({ onClose }: Props) {
             Para exercer quaisquer dos direitos previstos na LGPD — em especial a{" "}
             <strong>solicitação de exclusão dos dados</strong> — o titular deverá encaminhar
             requerimento para o e-mail{" "}
-            <a href="mailto:agenciaaxisdigital@gmail.com">agenciaaxisdigital@gmail.com</a>,
+            <a href="mailto:contatotop100fm@gmail.com">contatotop100fm@gmail.com</a>,
             informando nome completo e CPF utilizados no cadastro. As solicitações serão atendidas
             no menor prazo possível, observados os limites e exceções previstos em lei.
           </p>

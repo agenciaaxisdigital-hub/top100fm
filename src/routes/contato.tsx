@@ -34,7 +34,7 @@ const WHATSAPP = {
   href: "https://wa.me/5562818808950?text=Ol%C3%A1%2C%20TOP100%20FM!",
 };
 
-const EMAIL = "agenciaaxisdigital@gmail.com";
+const EMAIL = "contatotop100fm@gmail.com";
 
 const ENDERECO = {
   label: "Estúdio TOP 100",
