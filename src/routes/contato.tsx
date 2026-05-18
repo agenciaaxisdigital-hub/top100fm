@@ -7,11 +7,7 @@ import {
   Facebook,
   Youtube,
   Mail,
-  MapPin,
   ArrowUpRight,
-  Navigation,
-  Phone,
-  Clock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/contato")({
@@ -36,19 +32,6 @@ const WHATSAPP = {
 
 const EMAIL = "contatotop100fm@gmail.com";
 
-const ENDERECO = {
-  label: "Estúdio TOP 100",
-  street: "R. Antártida — Conj. Planície",
-  city: "Aparecida de Goiânia — GO",
-  cep: "74988-716",
-  mapsUrl:
-    "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent("R. Antártida, Conj. Planicie, Aparecida de Goiânia - GO, 74988-716"),
-  embedUrl:
-    "https://www.google.com/maps?q=" +
-    encodeURIComponent("R. Antártida, Conj. Planicie, Aparecida de Goiânia - GO, 74988-716") +
-    "&output=embed",
-};
 
 const SOCIAIS = [
   {
@@ -74,11 +57,6 @@ const SOCIAIS = [
   },
 ];
 
-const HORARIOS = [
-  { dias: "Segunda a Sexta", horas: "06h às 22h" },
-  { dias: "Sábado", horas: "07h às 20h" },
-  { dias: "Domingo", horas: "08h às 18h" },
-];
 
 function ContatoPage() {
   return (
@@ -210,89 +188,6 @@ function ContatoPage() {
           </div>
         </section>
 
-        {/* HORÁRIOS + ENDEREÇO */}
-        <div className="grid md:grid-cols-5 gap-4 items-start">
-          {/* Horários */}
-          <section className="md:col-span-2">
-            <SectionTitle eyebrow="Quando nos encontrar" title="Horários" />
-            <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-              <div className="bg-gradient-to-br from-[#0a1f44] to-[#1a3a7a] p-5 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Programação</p>
-                  <p className="font-black text-white text-sm">No ar o dia todo</p>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {HORARIOS.map((h) => (
-                  <div key={h.dias} className="flex items-center justify-between px-5 py-3.5">
-                    <span className="text-sm text-gray-500 font-medium">{h.dias}</span>
-                    <span className="text-sm font-black text-[#0a1f44] font-mono">{h.horas}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="px-4 pb-4 pt-3">
-                <a
-                  href={WHATSAPP.href}
-                  target="_blank"
-                  rel="noopener"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#25d366] py-2.5 text-sm font-black text-white hover:bg-[#1aad55] transition"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chamar no WhatsApp
-                </a>
-              </div>
-            </div>
-          </section>
-
-          {/* Endereço + Mapa */}
-          <section className="md:col-span-3">
-            <SectionTitle eyebrow="Visite a gente" title="Nosso estúdio" />
-            <article className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
-              <div className="grid sm:grid-cols-5">
-                <div className="relative sm:col-span-2 p-5 bg-gradient-to-br from-[#0a1f44] via-[#0a1f44] to-[#1a3a7a] text-white flex flex-col gap-4 min-h-[260px]">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
-                  <div className="pointer-events-none absolute -top-12 -right-10 h-40 w-40 rounded-full bg-[#c8102e]/30 blur-3xl" />
-                  <div className="relative flex-1">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#c8102e] to-[#a00d24] flex items-center justify-center text-white shadow mb-4">
-                      <MapPin className="h-5 w-5" />
-                    </div>
-                    <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#ff5470] mb-1">{ENDERECO.label}</div>
-                    <div className="font-black text-lg leading-snug">{ENDERECO.street}</div>
-                    <div className="text-sm text-white/75 mt-1">{ENDERECO.city}</div>
-                    <div className="text-xs text-white/50 mt-0.5">CEP {ENDERECO.cep}</div>
-                    <div className="mt-4 space-y-2 text-xs text-white/80">
-                      <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-[#ff5470] shrink-0" />{WHATSAPP.display}</div>
-                      <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-[#ff5470] shrink-0" /><span className="truncate text-[11px]">{EMAIL}</span></div>
-                    </div>
-                  </div>
-                  <a
-                    href={ENDERECO.mapsUrl}
-                    target="_blank"
-                    rel="noopener"
-                    className="relative inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#c8102e] px-4 py-2.5 text-xs font-bold text-white hover:bg-white hover:text-[#c8102e] transition-all"
-                  >
-                    <Navigation className="h-3.5 w-3.5" />
-                    Abrir no Google Maps
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-                <div className="sm:col-span-3 min-h-[240px] sm:min-h-0">
-                  <iframe
-                    title="Localização Estúdio TOP 100"
-                    src={ENDERECO.embedUrl}
-                    className="w-full h-full min-h-[240px] border-0"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            </article>
-          </section>
-        </div>
 
         <div className="text-center pt-2">
           <Link

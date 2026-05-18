@@ -18,6 +18,9 @@ export function SiteFooter() {
           <p className="site-footer-copy">
             © {new Date().getFullYear()} {settings?.radio_name || "TOP100 FM"} — Todos os direitos reservados.
           </p>
+          <p className="site-footer-copy opacity-60 text-xs">
+            CNPJ 46.549.775/0001-11
+          </p>
         </div>
         
         <div className="flex flex-col items-end gap-3">
